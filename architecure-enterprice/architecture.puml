@@ -1,0 +1,82 @@
+@startuml
+' Component Diagram with IAM, Security, and Monitoring Enhancements
+
+package "Infra-A (Project A)" {
+  [VPC Network] as vpc
+  [Cloud Armor] as armor
+  [External Load Balancer] as extlb
+  [Private Service Connect] as psc
+}
+
+package "DevOps-B (Project B)" {
+  [Internal Load Balancer] as intlb
+  [GKE Cluster] as gke
+  [Nginx Ingress Controller] as ingress
+  [Flask App] as app
+}
+
+package "IAM Roles" {
+  [Infra Admin Role] as infra_admin
+  [DevOps Role] as devops_admin
+}
+
+package "GKE Security" {
+  [RBAC Policies] as rbac
+  [Pod Security Policy] as psp
+}
+
+package "Monitoring & Logging" {
+  [Cloud Logging] as logging
+  [Prometheus] as prometheus
+  [ELK Stack] as elk
+}
+
+' Connections
+infra_admin --> vpc
+infra_admin --> armor
+infra_admin --> extlb
+infra_admin --> psc
+
+devops_admin --> gke
+devops_admin --> ingress
+devops_admin --> intlb
+
+extlb -- armor
+armor -- vpc
+vpc -- psc
+psc -- intlb
+intlb -- gke
+gke -- ingress
+ingress -- app
+
+' Security
+gke -- rbac
+gke -- psp
+
+' Monitoring
+gke -- logging
+gke -- prometheus
+ingress -- elk
+
+' Notes
+note right of armor : Protects from
+DDoS and
+other attacks
+note right of extlb : External HTTPS
+Traffic
+note right of psc : Provides private 
+access to DB/API services
+note right of intlb : Internal HTTP/S
+Traffic
+note right of gke : Kubernetes
+Cluster
+note right of ingress : Ingress Routing
+note right of app : Flask
+Application
+note right of psp : Ensures pod-level security
+note right of rbac : Controls GKE access
+note right of logging : Collects logs
+note right of prometheus : Monitors metrics
+note right of elk : Aggregates logs
+
+@enduml
