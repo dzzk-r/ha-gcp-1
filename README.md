@@ -41,3 +41,4 @@ This distinction ensures:
   ├── outputs.tf
   ├── backend.tf                   # Remote Terraform state configuration
 ```
+![Architecture Diagram](architecure-enterprice/architecture.png)
