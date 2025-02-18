@@ -57,3 +57,16 @@ resource "kubernetes_ingress" "flask_ingress" {
     }
   }
 }
+
+resource "null_resource" "test_ingress" {
+  provisioner "local-exec" {
+    command = <<EOT
+    echo "Ingress check..."
+    INGRESS_IP=$(kubectl get ingress flask-ingress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    curl -f http://$INGRESS_IP || (echo "Ingress DOES NOT work!" && exit 1)
+    echo "Ingress available!"
+    EOT
+  }
+
+  depends_on = [google_compute_global_forwarding_rule.external_lb]
+}
