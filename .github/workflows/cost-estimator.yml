@@ -59,6 +59,8 @@ jobs:
       - name: Debug Terraform Show Output
         run: |
           terraform show -json tfplan.binary > tfplan.json
+          terraform show -json tfplan.binary | jq .
+          cat tfplan.json
           cat tfplan.json | jq .
 
       - name: Debug - List Files in Workspace
