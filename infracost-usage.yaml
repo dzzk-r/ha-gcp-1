@@ -1,0 +1,8 @@
+version: 0.1
+resource_usage:
+  module.b-devops.google_container_cluster.gke:
+    node_count: 3
+    machine_type: "e2-medium"
+    storage_gb: 100
+  module.a-infra.google_compute_global_forwarding_rule.ext_lb_fwd_rule:
+    ingress_gb: 10

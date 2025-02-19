@@ -49,12 +49,14 @@ jobs:
       - name: Generate Cost Estimate
         run: |
           echo "Running infracost breakdown..."
-          
           infracost breakdown \
+            --usage-file infracost-usage.yaml \ # FAKE estimated pricing instead of returning priceNotFound errors
+            --sync-usage-file infracost-usage.yaml
             --path . \
             --format json \
             --out-file=cost-report.json || echo "{}" > cost-report.json
-          
+#            --usage-file infracost-usage.yaml \ # FAKE estimated pricing instead of returning priceNotFound errors
+
           echo "Verifying cost-report.json..."
           ls -lah cost-report.json || echo "{}" > cost-report.json
           
