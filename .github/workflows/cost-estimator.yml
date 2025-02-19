@@ -39,7 +39,7 @@ jobs:
       - name: Generate Terraform Plan (Fake Mode)
         run: |
           echo "Generating fake Terraform plan..."
-          terraform plan -out=tfplan || echo "Fake Terraform Plan - No Real GCP"
+          echo '{"format_version":"0.1","terraform_version":"1.0.0","planned_values":{"root_module":{}}}' > tfplan.json
 
       - name: Debug - Show Terraform Plan JSON
         run: |
@@ -48,18 +48,16 @@ jobs:
 
       - name: Generate Cost Estimate
         run: |
-          echo "Running infracost breakdown with Terraform variables..."
+          echo "Running infracost breakdown..."
           
           infracost breakdown \
             --path . \
-            --terraform-var-file=terraform.tfvars \
             --format json \
-            --out-file=cost-report.json \
-            --log-level=debug || echo "{}" > cost-report.json
-
+            --out-file=cost-report.json || echo "{}" > cost-report.json
+          
           echo "Verifying cost-report.json..."
           ls -lah cost-report.json || echo "{}" > cost-report.json
-
+          
           echo "Final cost-report.json contents:"
           cat cost-report.json | jq .
 
@@ -88,25 +86,13 @@ jobs:
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          echo "Checking if cost-report.json exists..."
-          ls -lah
-
           if [ ! -f cost-report.json ]; then
-            echo "cost-report.json is missing! Copying from artifacts if available..."
-            cp infracost-latest.json cost-report.json || echo "{}" > cost-report.json
-          fi
-
-          # Ensure JSON file is valid before posting
-          jq empty cost-report.json || { echo "Invalid JSON file! Fixing..."; echo "{}" > cost-report.json; }
-
-          # Exit if cost-report.json is still empty
-          if [ ! -s cost-report.json ]; then
             echo "No cost report found, skipping comment."
             exit 0
           fi
-
+          
           PR_NUMBER="${{ github.event.pull_request.number || '' }}"
-
+          
           if [[ -n "$PR_NUMBER" ]]; then
             echo "Posting cost estimate comment to PR #$PR_NUMBER"
             infracost comment github --path=cost-report.json \
@@ -114,13 +100,11 @@ jobs:
                                      --github-token=${{ secrets.GH_PAT }} \
                                      --pull-request="$PR_NUMBER" \
                                      --behavior=update
-          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          else
             echo "Manual run detected. Posting cost report to latest commit: ${{ github.sha }}"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
                                      --github-token=${{ secrets.GH_PAT }} \
                                      --commit=${{ github.sha }} \
                                      --behavior=update
-          else
-            echo "No valid context (PR or Manual Trigger) for Infracost comment, skipping..."
           fi
