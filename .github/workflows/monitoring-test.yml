@@ -18,6 +18,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check infra/monitoring exists and create it if so...
+        run: mkdir -p infra/monitoring/
+
       - name: Set up Docker
         run: |
           docker version
