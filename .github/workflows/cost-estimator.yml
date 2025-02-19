@@ -26,9 +26,9 @@ jobs:
 
       - name: Generate Terraform Plan fake
         run: |
-        # terraform plan -out=tfplan
           touch tfplan
           echo "Fake Terraform Plan - No GCP" > tfplan
+        # terraform plan -out=tfplan
 
       - name: Install Infracost
         run: |
