@@ -42,11 +42,11 @@ jobs:
       - name: Set Infracost API Key
         run: echo "INFRACOST_API_KEY=${{ secrets.INFRACOST_API_KEY }}" >> $GITHUB_ENV
 
-      - name: Generate Terraform Cost Estimate (Force Pricing)
+      - name: Force Generate Cost Estimate (Bypassing Terraform Plan)
         run: |
-          echo "Running infracost breakdown with mocked values..."
+          echo "Running infracost breakdown with fake values..."
           
-          infracost breakdown --path . --format json --out-file=cost-report.json || echo "{}" > cost-report.json
+          infracost breakdown --path . --format json --out-file=cost-report.json --log-level=debug || echo "{}" > cost-report.json
 
           echo "Verifying cost-report.json..."
           ls -lah cost-report.json || echo "{}" > cost-report.json
