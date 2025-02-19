@@ -78,7 +78,7 @@ jobs:
           jq '.' tfplan_final.json > tfplan_processed.json
 
       - name: Validate raw JSON with Python
-        run: python -m json.tool < tfplan_raw.json
+        run: python -m json.tool < tfplan_processed.json
 
       - name: Format JSON with jq
         run: cat tfplan_processed.json | jq '.' > tfplan_artf.json
