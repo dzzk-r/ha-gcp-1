@@ -40,10 +40,19 @@ jobs:
 
       - name: Generate Terraform Cost Estimate
         run: |
+          echo "Running infracost breakdown..."
           infracost breakdown --path . --format json --out-file=cost-report.json || echo "{}" > cost-report.json
+          
+          echo "Checking cost-report.json..."
+          if [ ! -s cost-report.json ]; then
+            echo "⚠️ Cost report is empty! Something went wrong with Infracost."
+            exit 1
+          fi
+          
           cat cost-report.json | jq .
+          
+          # Copy for later steps
           cp cost-report.json infracost-latest.json
-          infracost diff --path infracost-latest.json --compare-to infracost-previous.json || true
 
 #          terraform init -backend=false # No GCP required
 #          terraform plan -out=tfplan
