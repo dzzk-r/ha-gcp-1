@@ -6,8 +6,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write  # required for Infracost to post comments
-
 
 env:
   ACTIONS_RUNNER_DEBUG: true
@@ -28,31 +26,30 @@ jobs:
           terraform_version: latest
 
       - name: Initialize Terraform
-        run: |
-          terraform init -reconfigure || echo "Terraform init failed (no backend). Skipping..."
+        run: terraform init -reconfigure # Ensures backend is properly initialized
 
-      - name: Generate Fake Terraform Plan
+      - name: Generate Terraform Plan
         run: |
-          echo "Creating fake Terraform plan..."
-          echo '{"format_version":"1.0","terraform_version":"1.3.0","planned_values":{"root_module":{}},"resource_changes":[],"configuration":{}}' > tfplan.json
-          echo "Fake Terraform plan created."
+          terraform plan -out=tfplan || { echo "Terraform plan failed!"; exit 1; }
+          terraform show -json tfplan > tfplan.json
+          echo "Generated tfplan.json:"
+          cat tfplan.json | jq .
 
       - name: Install Infracost
         run: |
           curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
+          infracost update
           infracost --version
 
       - name: Set Infracost API Key
         run: echo "INFRACOST_API_KEY=${{ secrets.INFRACOST_API_KEY }}" >> $GITHUB_ENV
 
-      - name: Run Infracost Breakdown
+      - name: Generate Terraform Cost Estimate
         run: |
           echo "Running Infracost breakdown..."
-          infracost breakdown --path . --format json --log-level debug --out-file=cost-report.json || echo "{}" > cost-report.json
+          infracost breakdown --path=tfplan.json --format json --out-file=cost-report.json || echo "{}" > cost-report.json
 
-      - name: Debug - Check cost-report.json
-        run: |
-          echo "Checking cost-report.json contents..."
+          echo "Verifying cost-report.json..."
           ls -lah cost-report.json
           cat cost-report.json | jq .
 
@@ -63,15 +60,27 @@ jobs:
           path: cost-report.json
           retention-days: 7
 
+      - name: Debug - Show Cost Report
+        run: cat cost-report.json | jq .
+
       - name: Post Infracost Comment
+        env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_PAT }} # Explicitly use GH_PAT
         run: |
-          echo "Verifying cost-report.json..."
+          echo "Checking if cost-report.json exists..."
+          if [ ! -s cost-report.json ]; then
+            echo "cost-report.json is missing! Copying from artifacts if available..."
+            cp infracost-latest.json cost-report.json || echo "{}" > cost-report.json
+          fi
+
+          # Ensure valid JSON before posting
+          jq empty cost-report.json || { echo "Invalid JSON file! Fixing..."; echo "{}" > cost-report.json; }
+
+          # Exit if cost-report.json is empty
           if [ ! -s cost-report.json ]; then
             echo "No cost report found, skipping comment."
             exit 0
           fi
-
-          jq empty cost-report.json || { echo "Invalid JSON file! Fixing..."; echo "{}" > cost-report.json; }
 
           PR_NUMBER="${{ github.event.pull_request.number || '' }}"
 
@@ -79,14 +88,14 @@ jobs:
             echo "Posting cost estimate comment to PR #$PR_NUMBER"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
-                                     --github-token=${{ secrets.GH_PAT }} \
+                                     --github-token=${{ env.GITHUB_AUTH_TOKEN }} \
                                      --pull-request="$PR_NUMBER" \
                                      --behavior=update
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "Manual run detected. Posting cost report to latest commit: ${{ github.sha }}"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
-                                     --github-token=${{ secrets.GH_PAT }} \
+                                     --github-token=${{ env.GITHUB_AUTH_TOKEN }} \
                                      --commit=${{ github.sha }} \
                                      --behavior=update
           else
