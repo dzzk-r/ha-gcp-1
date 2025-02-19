@@ -26,10 +26,28 @@ jobs:
       - name: Terraform Format Check
         run: terraform fmt -check
 
+      - name: Generate Fake GCP Credentials
+        run: |
+          echo "Generating fake GCP credentials..."
+          cat > fake-gcp-credentials.json <<EOL
+          {
+            "type": "service_account",
+            "project_id": "mock-project",
+            "private_key_id": "mock-key",
+            "private_key": "-----BEGIN PRIVATE KEY-----\nmock-key-data\n-----END PRIVATE KEY-----\n",
+            "client_email": "mock-sa@mock-project.iam.gserviceaccount.com",
+            "client_id": "mock-client-id",
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/mock-sa@mock-project.iam.gserviceaccount.com"
+          }
+          EOL
+
       - name: Verify Fake GCP Credentials
         run: |
           echo "Checking fake GCP credentials..."
-          if ! cat fake-gcp-credentials.json | jq -e '.type' > /dev/null; then
+          if ! jq -e '.type' fake-gcp-credentials.json > /dev/null; then
             echo "Error: 'type' field is missing in fake-gcp-credentials.json!"
             exit 1
           fi
@@ -40,7 +58,7 @@ jobs:
           cat fake-gcp-credentials.json | jq .
 
       - name: Terraform Init
-        run: terraform init -backend=false # No GCP required
+        run: terraform init -backend=false # No GCP backend
 
       - name: Terraform Validate (No GCP)
         run: |
@@ -50,10 +68,10 @@ jobs:
         run: |
           echo "Initializing Terraform..."
           terraform init -reconfigure
-          
+
           echo "Generating Terraform plan..."
           terraform plan -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || exit 1
-          
+
           echo "Generating JSON plan..."
           terraform show -json tfplan.binary > tfplan.json || exit 1
 
