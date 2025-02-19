@@ -64,7 +64,10 @@ jobs:
         run: head -n 10 tfplan_raw.json
 
       - name: Display raw JSON before parsing
-        run: cat tfplan_raw.json
+        run: |
+          cat tfplan_raw.json
+          echo "===="
+          od -c tfplan_raw.json
 
       - name: Verify JSON with jq
         run: |
