@@ -48,14 +48,15 @@ jobs:
           export TF_LOG=DEBUG
           echo "Generating Terraform plan..."
           terraform plan -out=tfplan.binary || echo "{}" > tfplan.binary
-          terraform show -json tfplan > tfplan.json
-#          terraform plan -out=tfplan.binary
-#          terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
+          terraform show -json tfplan.binary > tfplan.json
 
-      - name: Debug - Show Terraform Plan JSON
+      - name: Verify tfplan.binary existence
+        run: ls -lh tfplan.binary
+
+      - name: Debug Terraform Show Output
         run: |
-          cat tfplan.json
-          echo "Terraform Plan JSON:" && cat tfplan.json | jq .
+          terraform show -json tfplan.binary > tfplan.json
+          cat tfplan.json | jq .
 
       - name: Debug - List Files in Workspace
         run: |
