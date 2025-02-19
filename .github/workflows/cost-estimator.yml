@@ -48,7 +48,7 @@ jobs:
           echo "Running Infracost breakdown..."
           infracost breakdown --path . --format json --log-level debug --out-file=cost-report.json || echo "{}" > cost-report.json
 
-      - name: Debug: Check cost-report.json
+      - name: Debug - Check cost-report.json
         run: |
           echo "Checking cost-report.json contents..."
           ls -lah cost-report.json
