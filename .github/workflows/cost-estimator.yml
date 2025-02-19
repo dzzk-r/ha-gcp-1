@@ -28,12 +28,6 @@ jobs:
       - name: Initialize Terraform
         run: terraform init -reconfigure
 
-      - name: Generate Fake Terraform Plan (No Real GCP)
-        run: |
-          echo "Creating fake Terraform plan..."
-          touch tfplan
-          echo "Fake Terraform Plan - No GCP" > tfplan
-
       - name: Install Infracost
         run: |
           curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
@@ -42,11 +36,26 @@ jobs:
       - name: Set Infracost API Key
         run: echo "INFRACOST_API_KEY=${{ secrets.INFRACOST_API_KEY }}" >> $GITHUB_ENV
 
-      - name: Force Generate Cost Estimate (Bypassing Terraform Plan)
+      - name: Generate Terraform Plan (Fake Mode)
         run: |
-          echo "Running infracost breakdown with fake values..."
+          echo "Generating fake Terraform plan..."
+          terraform plan -out=tfplan || echo "Fake Terraform Plan - No Real GCP"
+
+      - name: Debug - Show Terraform Plan JSON
+        run: |
+          terraform show -json tfplan > tfplan.json || echo "{}" > tfplan.json
+          cat tfplan.json | jq .
+
+      - name: Generate Cost Estimate
+        run: |
+          echo "Running infracost breakdown with Terraform variables..."
           
-          infracost breakdown --path . --format json --out-file=cost-report.json --log-level=debug || echo "{}" > cost-report.json
+          infracost breakdown \
+            --path . \
+            --terraform-var-file=terraform.tfvars \
+            --format json \
+            --out-file=cost-report.json \
+            --log-level=debug || echo "{}" > cost-report.json
 
           echo "Verifying cost-report.json..."
           ls -lah cost-report.json || echo "{}" > cost-report.json
