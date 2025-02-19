@@ -25,18 +25,22 @@ jobs:
         with:
           terraform_version: latest
 
-      - name: Initialize Terraform
-        run: terraform init -reconfigure
+      - name: Initialize Terraform (Mock GCP)
+        run: |
+          export GOOGLE_APPLICATION_CREDENTIALS=/dev/null
+          terraform init -reconfigure
 
       - name: Install Infracost
         run: |
           curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
           infracost --version
 
-      - name: Set Infracost API Key
-        run: echo "INFRACOST_API_KEY=${{ secrets.INFRACOST_API_KEY }}" >> $GITHUB_ENV
+      - name: Set Infracost API Key (Mocked Mode)
+        run: |
+          echo "INFRACOST_API_KEY=${{ secrets.INFRACOST_API_KEY }}" >> $GITHUB_ENV
+          echo "INFRACOST_ENABLE_CLOUD=false" >> $GITHUB_ENV
 
-      - name: Generate Terraform Plan
+      - name: Generate Terraform Plan (Mocked GCP)
         run: |
           echo "Generating Terraform plan..."
           terraform plan -out=tfplan.binary || echo "{}" > tfplan.binary
@@ -44,24 +48,17 @@ jobs:
 
       - name: Debug - Show Terraform Plan JSON
         run: |
-          echo "Terraform Plan JSON:"
-          cat tfplan.json | jq .
+          echo "Terraform Plan JSON:" && cat tfplan.json | jq .
 
-      - name: Generate Cost Estimate
+      - name: Generate Cost Estimate (Mock Mode)
         run: |
-          echo "Running infracost breakdown..."
+          echo "Running infracost breakdown in mock mode..."
           infracost breakdown \
-            --usage-file infracost-usage.yaml \
-            --sync-usage-file \
             --path tfplan.json \
             --format json \
             --out-file cost-report.json || echo "{}" > cost-report.json
 
-          echo "Verifying cost-report.json..."
-          ls -lah cost-report.json || echo "{}" > cost-report.json
-          
-          echo "Final cost-report.json contents:"
-          cat cost-report.json | jq .
+          echo "Final cost-report.json contents:" && cat cost-report.json | jq .
 
       - name: Upload Cost Report as Artifact
         uses: actions/upload-artifact@v4
@@ -73,18 +70,7 @@ jobs:
       - name: Show Cost Report
         run: cat cost-report.json
 
-      - name: Download Cost Report Artifact (Ensure Persistence)
-        uses: actions/download-artifact@v4
-        with:
-          name: infracost-report
-          path: .
-
-      - name: Debug - Check Available Files
-        run: |
-          echo "Checking available files in workspace..."
-          ls -lah
-
-      - name: Post Infracost Comment
+      - name: Post Infracost Comment to PR
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
@@ -92,20 +78,18 @@ jobs:
             echo "No cost report found, skipping comment."
             exit 0
           fi
-          
           PR_NUMBER="${{ github.event.pull_request.number || '' }}"
-          
           if [[ -n "$PR_NUMBER" ]]; then
-            echo "Posting cost estimate comment to PR #$PR_NUMBER"
-            infracost comment github --path=cost-report.json \
-                                     --repo=$GITHUB_REPOSITORY \
-                                     --github-token=${{ secrets.GH_PAT }} \
-                                     --pull-request="$PR_NUMBER" \
-                                     --behavior=update
+            infracost comment github \
+              --path=cost-report.json \
+              --repo=$GITHUB_REPOSITORY \
+              --github-token=${{ secrets.GH_PAT }} \
+              --pull-request="$PR_NUMBER" \
+              --behavior=update
           else
-            echo "Manual run detected. Posting cost report to latest commit: ${{ github.sha }}"
-            infracost comment github --path=cost-report.json \
-                                     --repo=$GITHUB_REPOSITORY \
-                                     --github-token=${{ secrets.GH_PAT }} \
-                                     --commit=${{ github.sha }} \
-                                     --behavior=update
+            infracost comment github \
+              --path=cost-report.json \
+              --repo=$GITHUB_REPOSITORY \
+              --github-token=${{ secrets.GH_PAT }} \
+              --commit=${{ github.sha }} \
+              --behavior=update
