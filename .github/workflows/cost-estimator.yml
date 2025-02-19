@@ -57,15 +57,21 @@ jobs:
       - name: Debug Terraform Show Output
         run: |
           ls -lh tfplan.json
-          echo "----"
-          head -n 5 tfplan.json
+          echo "-=-=-=-=-=-=-"
+          cat tfplan.json
+          echo "-=-=-=-=-=-=-"
           echo 0
+          echo "-=-=-=-=-=-=-"
           terraform show -json
+          echo "-=-=-=-=-=-=-"
           echo 1
-          #          terraform show -json tfplan.binary > tfplan.json
+          echo "-=-=-=-=-=-=-"
           terraform show -json tfplan.binary | jq '.' > tfplan.json
+          echo "-=-=-=-=-=-=-"
           echo 2
+          echo "-=-=-=-=-=-=-"
           python -m json.tool < tfplan.json
+          echo "-=-=-=-=-=-=-"
 
       - name: Debug - List Files in Workspace
         run: |
