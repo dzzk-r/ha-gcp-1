@@ -1,6 +1,7 @@
 name: Terraform Cost Estimation
 
 on:
+  workflow_dispatch:
   pull_request:
 
 permissions:
