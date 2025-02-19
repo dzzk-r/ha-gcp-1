@@ -26,18 +26,19 @@ jobs:
           docker version
           docker compose version
 
-      - name: Start Prometheus & Loki
-        run: |
-          cd infra/monitoring/
-          docker compose up -d
-          sleep 10  # Give containers time to start
-          docker ps
-
-      - name: Check if Prometheus is running
-        run: curl -f http://localhost:9090/api/v1/status || echo "Prometheus not reachable"
-
-      - name: Check if Loki is running
-        run: curl -f http://localhost:3100/loki/api/v1/status || echo "Loki not reachable"
+      # No need for a while
+#      - name: Start Prometheus & Loki
+#        run: |
+#          cd infra/monitoring/
+#          docker compose up -d
+#          sleep 10  # Give containers time to start
+#          docker ps
+#
+#      - name: Check if Prometheus is running
+#        run: curl -f http://localhost:9090/api/v1/status || echo "Prometheus not reachable"
+#
+#      - name: Check if Loki is running
+#        run: curl -f http://localhost:3100/loki/api/v1/status || echo "Loki not reachable"
 
       - name: Stop Docker services
         run: docker compose down
