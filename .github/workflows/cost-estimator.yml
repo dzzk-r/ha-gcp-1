@@ -56,6 +56,13 @@ jobs:
       - name: Debug Terraform Show Output
         run: terraform show -json tfplan.binary
 
+      - name: Save tfplan.json as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-json
+          path: tfplan.json
+          retention-days: 7
+
       - name: Debug Terraform Show Output
         run: |
           ls -lh tfplan.json
