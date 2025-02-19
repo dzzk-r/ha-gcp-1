@@ -41,11 +41,11 @@ jobs:
       - name: Generate Terraform Cost Estimate
         run: |
           infracost breakdown --path . --format json > cost-report.json
-#          terraform init -backend=false # No GCP required
-#          terraform plan -out=tfplan
           cat cost-report.json | jq .
           mv cost-report.json infracost-latest.json
           infracost diff --path infracost-latest.json --compare-to infracost-previous.json || true
+      #          terraform init -backend=false # No GCP required
+      #          terraform plan -out=tfplan
 
       - name: Upload Cost Report as Artifact
         uses: actions/upload-artifact@v3
