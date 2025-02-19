@@ -86,20 +86,48 @@ jobs:
             echo "No cost report found, skipping comment."
             exit 0
           fi
-          
+
+          # If running from a pull request, post the comment to the PR
           if [ -n "${{ github.event.pull_request.number }}" ]; then
+            echo "Posting cost estimate comment to PR #${{ github.event.pull_request.number }}"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
                                      --github-token=${{ secrets.GITHUB_TOKEN }} \
                                      --pull-request=${{ github.event.pull_request.number }} \
                                      --behavior=update
-          else
+
+          # If running manually (workflow_dispatch), post comment on latest commit
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Manual run detected. Posting cost report to latest commit: ${{ github.sha }}"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
                                      --github-token=${{ secrets.GITHUB_TOKEN }} \
                                      --commit=${{ github.sha }} \
                                      --behavior=update
+
+          # If neither condition is met, do nothing
+          else
+            echo "No valid context (PR or Manual Trigger) for Infracost comment, skipping..."
           fi
+#        run: |
+#          if [ ! -s cost-report.json ]; then
+#            echo "No cost report found, skipping comment."
+#            exit 0
+#          fi
+#
+#          if [ -n "${{ github.event.pull_request.number }}" ]; then
+#            infracost comment github --path=cost-report.json \
+#                                     --repo=$GITHUB_REPOSITORY \
+#                                     --github-token=${{ secrets.GITHUB_TOKEN }} \
+#                                     --pull-request=${{ github.event.pull_request.number }} \
+#                                     --behavior=update
+#          else
+#            infracost comment github --path=cost-report.json \
+#                                     --repo=$GITHUB_REPOSITORY \
+#                                     --github-token=${{ secrets.GITHUB_TOKEN }} \
+#                                     --commit=${{ github.sha }} \
+#                                     --behavior=update
+#          fi
 
   # Run Infracost on default branch and update Infracost Cloud
   infracost-default-branch-update:
