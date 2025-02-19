@@ -16,10 +16,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: latest
+
       - name: Install Infracost
         run: |
           curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
           infracost --version
+
+      - name: Initialize Terraform (No Backend)
+        run: terraform init -backend=false
 
       - name: Generate Terraform Cost Estimate
         run: |
