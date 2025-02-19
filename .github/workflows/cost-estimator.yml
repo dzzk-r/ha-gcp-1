@@ -67,11 +67,11 @@ jobs:
         run: |
           cat tfplan_raw.json
           echo "===="
-          od -c tfplan_raw.json
+          tail -n +2 tfplan_raw.json > tfplan_cleaned.json
+          od -c tfplan_cleaned.json
 
       - name: Verify JSON with jq
         run: |
-          tail -n +2 tfplan_raw.json > tfplan_cleaned.json
           jq '.' tfplan_cleaned.json > tfplan_processed.json
 
       - name: Validate raw JSON with Python
