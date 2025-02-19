@@ -1,0 +1,30 @@
+name: Terraform Cost Estimation
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  cost-estimation:
+    name: Estimate Terraform Costs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Infracost
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
+          infracost --version
+
+      - name: Generate Terraform Cost Estimate
+        run: |
+          terraform init -backend=false # No GCP required
+          terraform plan -out=tfplan
+          infracost breakdown --path . --format json > cost-report.json
+
+      - name: Show Cost Report
+        run: cat cost-report.json

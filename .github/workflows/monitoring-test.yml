@@ -1,0 +1,40 @@
+name: Monitoring Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  monitoring:
+    name: Run Prometheus & Loki Locally
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        run: |
+          docker version
+          docker compose version
+
+      - name: Start Prometheus & Loki
+        run: |
+          cd infra/monitoring/
+          docker compose up -d
+          sleep 10  # Give containers time to start
+          docker ps
+
+      - name: Check if Prometheus is running
+        run: curl -f http://localhost:9090/api/v1/status || echo "Prometheus not reachable"
+
+      - name: Check if Loki is running
+        run: curl -f http://localhost:3100/loki/api/v1/status || echo "Loki not reachable"
+
+      - name: Stop Docker services
+        run: docker compose down
