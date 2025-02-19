@@ -21,7 +21,7 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.5 # Adjust to latest
+          terraform_version: 1.5.5
 
       - name: Terraform Format Check
         run: terraform fmt -check
@@ -51,14 +51,14 @@ jobs:
             echo "Error: 'type' field is missing in fake-gcp-credentials.json!"
             exit 1
           fi
+          echo "Setting GOOGLE_APPLICATION_CREDENTIALS..."
+          echo "FAKE_CREDENTIALS=$(pwd)/fake-gcp-credentials.json" >> $GITHUB_ENV
 
       - name: Debug - Show Fake GCP Credentials
-        run: |
-          echo "Fake GCP credentials preview:"
-          cat fake-gcp-credentials.json | jq .
+        run: cat fake-gcp-credentials.json | jq .
 
       - name: Terraform Init
-        run: terraform init -backend=false # No GCP backend
+        run: terraform init -backend=false
 
       - name: Terraform Validate (No GCP)
         run: |
@@ -66,12 +66,15 @@ jobs:
 
       - name: Generate Terraform Plan (Mocked GCP)
         run: |
+          echo "Setting up Fake Credentials for Terraform..."
+          export GOOGLE_APPLICATION_CREDENTIALS="${FAKE_CREDENTIALS}"
+          
           echo "Initializing Terraform..."
           terraform init -reconfigure
-
+          
           echo "Generating Terraform plan..."
           terraform plan -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || exit 1
-
+          
           echo "Generating JSON plan..."
           terraform show -json tfplan.binary > tfplan.json || exit 1
 
