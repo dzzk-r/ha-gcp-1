@@ -70,7 +70,7 @@ jobs:
       - name: Show Cost Report
         run: cat cost-report.json
 
-      - name: Post Infracost Comment to PR
+      - name: Post Infracost Comment
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
@@ -78,18 +78,23 @@ jobs:
             echo "No cost report found, skipping comment."
             exit 0
           fi
-          PR_NUMBER="${{ github.event.pull_request.number || '' }}"
+          
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          
           if [[ -n "$PR_NUMBER" ]]; then
+            echo "Posting cost estimate comment to PR #$PR_NUMBER"
             infracost comment github \
               --path=cost-report.json \
-              --repo=$GITHUB_REPOSITORY \
+              --repo=${{ github.repository }} \
               --github-token=${{ secrets.GH_PAT }} \
               --pull-request="$PR_NUMBER" \
               --behavior=update
           else
+            echo "No PR found, posting to latest commit: ${{ github.sha }}"
             infracost comment github \
               --path=cost-report.json \
-              --repo=$GITHUB_REPOSITORY \
+              --repo=${{ github.repository }} \
               --github-token=${{ secrets.GH_PAT }} \
               --commit=${{ github.sha }} \
               --behavior=update
+          fi
