@@ -26,24 +26,39 @@ jobs:
       - name: Terraform Format Check
         run: terraform fmt -check
 
+      - name: Verify Fake GCP Credentials
+        run: |
+          echo "Checking fake GCP credentials..."
+          if ! cat fake-gcp-credentials.json | jq -e '.type' > /dev/null; then
+            echo "Error: 'type' field is missing in fake-gcp-credentials.json!"
+            exit 1
+          fi
+
       - name: Debug - Show Fake GCP Credentials
         run: |
-          echo "Checking fake-gcp-credentials.json..."
+          echo "Fake GCP credentials preview:"
           cat fake-gcp-credentials.json | jq .
 
       - name: Terraform Init
         run: terraform init -backend=false # No GCP required
 
-#      - name: Terraform Validate
-#        run: terraform validate
-
-#       GCP-dumb validation
       - name: Terraform Validate (No GCP)
         run: |
           terraform validate || echo "Ignoring validation errors for non-GCP setup"
 
-#      - name: Terraform Plan (Dry Run)
-#        run: terraform plan -no-color || echo "Plan failed, skipping..."
+      - name: Generate Terraform Plan (Mocked GCP)
+        run: |
+          echo "Initializing Terraform..."
+          terraform init -reconfigure
+          
+          echo "Generating Terraform plan..."
+          terraform plan -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || exit 1
+          
+          echo "Generating JSON plan..."
+          terraform show -json tfplan.binary > tfplan.json || exit 1
+
+          echo "Debugging: Terraform Plan JSON"
+          cat tfplan.json | jq .
 
       - name: Install Checkov (Security Scan)
         run: pip install checkov
