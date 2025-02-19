@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+env:
+  ACTIONS_RUNNER_DEBUG: true
+  ACTIONS_STEP_DEBUG: true
+
 jobs:
   cost-estimation:
     name: Estimate Terraform Costs
@@ -22,12 +26,13 @@ jobs:
           terraform_version: latest
 
       - name: Initialize Terraform
-        run: terraform init -reconfigure # Ensures backend is properly initialized
+        run: terraform init -reconfigure
 
-      - name: Generate Terraform Plan fake
-        run: |
-          touch tfplan
-          echo "Fake Terraform Plan - No GCP" > tfplan
+      - name: Generate Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Convert Terraform Plan to JSON
+        run: terraform show -json tfplan > tfplan.json
 
       - name: Install Infracost
         run: |
@@ -37,23 +42,16 @@ jobs:
       - name: Set Infracost API Key
         run: echo "INFRACOST_API_KEY=${{ secrets.INFRACOST_API_KEY }}" >> $GITHUB_ENV
 
-      - name: Generate Terraform Cost Estimate
+      - name: Run Infracost Breakdown
         run: |
-          echo "Running infracost breakdown..."
-          infracost breakdown --path . --format json --out-file=cost-report.json || echo "{}" > cost-report.json
+          echo "Running Infracost breakdown..."
+          infracost breakdown --path . --format json --log-level debug --out-file=cost-report.json || echo "{}" > cost-report.json
 
-          echo "Verifying cost-report.json..."
-          ls -lah cost-report.json || echo "{}" > cost-report.json
-
-          echo "Final cost-report.json contents:"
+      - name: Debug: Check cost-report.json
+        run: |
+          echo "Checking cost-report.json contents..."
+          ls -lah cost-report.json
           cat cost-report.json | jq .
-
-          # Ensure persistence
-          if [ -f infracost-latest.json ]; then
-            cp infracost-latest.json cost-report.json
-          else
-            echo "{}" > cost-report.json
-          fi
 
       - name: Upload Cost Report as Artifact
         uses: actions/upload-artifact@v4
@@ -62,38 +60,26 @@ jobs:
           path: cost-report.json
           retention-days: 7
 
-      - name: Show Cost Report
-        run: cat cost-report.json
-
       - name: Download Cost Report Artifact (Ensure Persistence)
         uses: actions/download-artifact@v4
         with:
           name: infracost-report
           path: .
 
-      - name: Debug - Check Available Files
+      - name: Debug: Check Available Files
         run: |
           echo "Checking available files in workspace..."
           ls -lah
 
       - name: Post Infracost Comment
         run: |
-          echo "Checking if cost-report.json exists..."
-          ls -lah
-
-          if [ ! -f cost-report.json ]; then
-            echo "cost-report.json is missing! Copying from artifacts if available..."
-            cp infracost-latest.json cost-report.json || echo "{}" > cost-report.json
-          fi
-
-          # Ensure the JSON file is valid before posting
-          jq empty cost-report.json || { echo "Invalid JSON file! Fixing..."; echo "{}" > cost-report.json; }
-
-          # Exit if cost-report.json is still missing
+          echo "Verifying cost-report.json..."
           if [ ! -s cost-report.json ]; then
             echo "No cost report found, skipping comment."
             exit 0
           fi
+
+          jq empty cost-report.json || { echo "Invalid JSON file! Fixing..."; echo "{}" > cost-report.json; }
 
           PR_NUMBER="${{ github.event.pull_request.number || '' }}"
 
