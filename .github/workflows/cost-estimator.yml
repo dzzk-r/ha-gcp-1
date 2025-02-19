@@ -36,26 +36,26 @@ jobs:
       - name: Set Infracost API Key
         run: echo "INFRACOST_API_KEY=${{ secrets.INFRACOST_API_KEY }}" >> $GITHUB_ENV
 
-      - name: Generate Terraform Plan (Fake Mode)
+      - name: Generate Terraform Plan
         run: |
-          echo "Generating fake Terraform plan..."
-          echo '{"format_version":"0.1","terraform_version":"1.0.0","planned_values":{"root_module":{}}}' > tfplan.json
+          echo "Generating Terraform plan..."
+          terraform plan -out=tfplan.binary || echo "{}" > tfplan.binary
+          terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
 
       - name: Debug - Show Terraform Plan JSON
         run: |
-          terraform show -json tfplan > tfplan.json || echo "{}" > tfplan.json
+          echo "Terraform Plan JSON:"
           cat tfplan.json | jq .
 
       - name: Generate Cost Estimate
         run: |
           echo "Running infracost breakdown..."
           infracost breakdown \
-            --usage-file infracost-usage.yaml \ # FAKE estimated pricing instead of returning priceNotFound errors
-            --sync-usage-file infracost-usage.yaml
-            --path . \
+            --usage-file infracost-usage.yaml \
+            --sync-usage-file \
+            --path tfplan.json \
             --format json \
-            --out-file=cost-report.json || echo "{}" > cost-report.json
-          # --usage-file infracost-usage.yaml \ # FAKE estimated pricing instead of returning priceNotFound errors
+            --out-file cost-report.json || echo "{}" > cost-report.json
 
           echo "Verifying cost-report.json..."
           ls -lah cost-report.json || echo "{}" > cost-report.json
@@ -109,4 +109,3 @@ jobs:
                                      --github-token=${{ secrets.GH_PAT }} \
                                      --commit=${{ github.sha }} \
                                      --behavior=update
-          fi
