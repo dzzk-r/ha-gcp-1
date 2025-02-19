@@ -3,6 +3,10 @@
 This document outlines **key discussion areas** without diving into detailed solutions.  
 Each section represents a **high-priority topic** for future refinement and decision-making.
 
+### 0. Feature
+https://github.com/dzzk-r/ha-gcp-1/commit/fa04465a9dee02dd6dd05cfca17f75c3e920de6a#commitcomment-152762381
+
+
 ## 1. **IAM & Role-Based Access Control**
 - How do we structure IAM policies between Infra-A and DevOps-B?
 - What roles and permissions should each team have?
