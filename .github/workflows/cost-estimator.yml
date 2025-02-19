@@ -35,7 +35,6 @@ jobs:
       - name: Install Infracost
         run: |
           curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
-          infracost update
           infracost --version
 
       - name: Set Infracost API Key
