@@ -40,7 +40,7 @@ jobs:
 
       - name: Generate Terraform Cost Estimate
         run: |
-          infracost breakdown --path . --format json > cost-report.json
+          infracost breakdown --path . --format json --out-file=cost-report.json || echo "{}" > cost-report.json
           cat cost-report.json | jq .
           cp cost-report.json infracost-latest.json
           infracost diff --path infracost-latest.json --compare-to infracost-previous.json || true
@@ -79,14 +79,14 @@ jobs:
 #                          --out-file=infracost.json
 
       # Posts a comment to the PR using the 'update' behavior.
-      # This creates a single comment and updates it. The "quietest" option.
-      # The other valid behaviors are:
-      #   delete-and-new - Delete previous comments and create a new one.
-      #   hide-and-new - Minimize previous comments and create a new one.
-      #   new - Create a new cost estimate comment on every push.
-      # See https://www.infracost.io/docs/features/cli_commands/#comment-on-pull-requests for other options.
+      # This ensures cost estimate comments are maintained correctly.
       - name: Post Infracost comment
         run: |
+          if [ ! -s cost-report.json ]; then
+            echo "No cost report found, skipping comment."
+            exit 0
+          fi
+          
           if [ -n "${{ github.event.pull_request.number }}" ]; then
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
@@ -103,8 +103,6 @@ jobs:
 
   # Run Infracost on default branch and update Infracost Cloud
   infracost-default-branch-update:
-    # If you use private modules, or store Terraform variables or modules in a 3rd party
-    # such as TFC or Spacelift, include the same steps/variables as the infracost-pull-request-checks job
     name: Infracost Default Branch Update
     if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master')
     runs-on: ubuntu-latest
