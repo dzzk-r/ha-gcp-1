@@ -53,6 +53,11 @@ jobs:
         run: |
           echo "Terraform Plan JSON:" && cat tfplan.json | jq .
 
+      - name: Debug - List Files in Workspace
+        run: |
+          echo "Checking available files..."
+          ls -lah
+
       - name: Generate Cost Estimate (Mock Mode)
         run: |
           echo "Running infracost breakdown in mock mode..."
@@ -62,6 +67,11 @@ jobs:
             --out-file cost-report.json || echo "{}" > cost-report.json
 
           echo "Final cost-report.json contents:" && cat cost-report.json | jq .
+
+      - name: Debug - Show Cost Report
+        run: |
+          echo "Cost Report JSON:"
+          cat cost-report.json | jq .
 
       - name: Upload Cost Report as Artifact
         uses: actions/upload-artifact@v4

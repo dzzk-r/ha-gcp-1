@@ -6,7 +6,7 @@
 resource "google_container_cluster" "gke_cluster" {
   name     = "mock-cluster"
   project  = var.project_id
-  location = "us-central1-a"
+  location = "asia-south1"
   network  = google_compute_network.vpc_internal.id
 }
 
