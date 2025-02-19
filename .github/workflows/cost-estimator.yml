@@ -25,6 +25,9 @@ jobs:
         with:
           terraform_version: latest
 
+      - name: Create Fake GCP Credentials
+        run: echo '{}' > fake-gcp-credentials.json
+
       - name: Initialize Terraform (Mock GCP)
         run: |
           export GOOGLE_APPLICATION_CREDENTIALS=/dev/null
