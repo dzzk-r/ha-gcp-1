@@ -91,27 +91,35 @@ jobs:
       # This ensures cost estimate comments are maintained correctly.
       - name: Post Infracost comment
         run: |
+          # Debugging step: Ensure cost-report.json exists
+          echo "Checking if cost-report.json exists..."
+          ls -lah cost-report.json || echo "⚠️ cost-report.json NOT FOUND!"
+
+          # Exit if no cost report exists or is empty
           if [ ! -s cost-report.json ]; then
-            echo "No cost report found, skipping comment."
+            echo "⚠️ No cost report found, skipping comment."
             exit 0
           fi
 
           # Detect PR number (empty in manual runs)
           PR_NUMBER="${{ github.event.pull_request.number }}"
+          
           if [[ -n "$PR_NUMBER" ]]; then
-            echo "Posting cost estimate comment to PR #$PR_NUMBER"
+            echo "✅ Posting cost estimate comment to PR #$PR_NUMBER"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
                                      --github-token=${{ secrets.GITHUB_TOKEN }} \
                                      --pull-request="$PR_NUMBER" \
                                      --behavior=update
-          else
-            echo "Manual run detected. Posting cost report to latest commit: ${{ github.sha }}"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "✅ Manual run detected. Posting cost report to latest commit: ${{ github.sha }}"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
                                      --github-token=${{ secrets.GITHUB_TOKEN }} \
                                      --commit=${{ github.sha }} \
                                      --behavior=update
+          else
+            echo "⚠️ No valid context (PR or Manual Trigger) for Infracost comment, skipping..."
           fi
 
 #        run: |
