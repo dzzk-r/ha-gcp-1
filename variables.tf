@@ -1,3 +1,15 @@
+# Mock project
+variable "project_id" {
+  type    = string
+  default = "mock-project"
+}
+
+# Mock GCP SA
+variable "service_account_email" {
+  type    = string
+  default = "mock-sa@mock-project.iam.gserviceaccount.com"
+}
+
 variable "cloud_armor_rules" {
   type    = list(string)
   default = ["allow-all"]

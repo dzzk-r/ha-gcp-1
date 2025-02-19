@@ -3,6 +3,8 @@ terraform {
   backend "local" {
     path = "./terraform.tfstate" # Going GH First Approach
   }
+  # - Prevents Terraform from attempting to use a non-existent GCS bucket.
+  # - Works locally without billing or cloud dependencies.
   # backend "gcs" {
   #   bucket = "terraform-state-dev"
   #   prefix = "terraform/state"
