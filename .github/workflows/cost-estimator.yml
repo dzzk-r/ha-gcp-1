@@ -54,6 +54,9 @@ jobs:
         run: ls -lh tfplan.binary
 
       - name: Debug Terraform Show Output
+        run: terraform show -json tfplan.binary
+
+      - name: Debug Terraform Show Output
         run: |
           terraform show -json tfplan.binary > tfplan.json
           cat tfplan.json | jq .
