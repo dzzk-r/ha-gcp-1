@@ -70,13 +70,13 @@ jobs:
       - name: Checkout PR branch
         uses: actions/checkout@v4
 
-      # Generate an Infracost diff and save it to a JSON file.
-      - name: Generate Infracost diff
-        run: |
-          infracost diff --path=. \
-                          --format=json \
-                          --compare-to=cost-report.json \
-                          --out-file=/tmp/infracost.json
+#      # Generate an Infracost diff and save it to a JSON file.
+#      - name: Generate Infracost diff
+#        run: |
+#          infracost diff --path=. \
+#                          --format=json \
+#                          --compare-to=cost-report.json \
+#                          --out-file=infracost.json
 
       # Posts a comment to the PR using the 'update' behavior.
       # This creates a single comment and updates it. The "quietest" option.
