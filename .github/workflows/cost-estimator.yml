@@ -92,13 +92,13 @@ jobs:
           echo "Checking if cost-report.json exists..."
           ls -lah
           if [ ! -f cost-report.json ]; then
-            echo "⚠️ cost-report.json is missing! Copying from artifacts if available..."
+            echo "cost-report.json is missing! Copying from artifacts if available..."
             cp infracost-latest.json cost-report.json || echo "{}" > cost-report.json
           fi
 
           # Exit if cost-report.json is still missing
           if [ ! -s cost-report.json ]; then
-            echo "⚠️ No cost report found, skipping comment."
+            echo "No cost report found, skipping comment."
             exit 0
           fi
 
@@ -106,21 +106,21 @@ jobs:
           PR_NUMBER="${{ github.event.pull_request.number }}"
           
           if [[ -n "$PR_NUMBER" ]]; then
-            echo "✅ Posting cost estimate comment to PR #$PR_NUMBER"
+            echo "Posting cost estimate comment to PR #$PR_NUMBER"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
                                      --github-token=${{ secrets.GITHUB_TOKEN }} \
                                      --pull-request="$PR_NUMBER" \
                                      --behavior=update
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "✅ Manual run detected. Posting cost report to latest commit: ${{ github.sha }}"
+            echo "Manual run detected. Posting cost report to latest commit: ${{ github.sha }}"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
                                      --github-token=${{ secrets.GITHUB_TOKEN }} \
                                      --commit=${{ github.sha }} \
                                      --behavior=update
           else
-            echo "⚠️ No valid context (PR or Manual Trigger) for Infracost comment, skipping..."
+            echo "No valid context (PR or Manual Trigger) for Infracost comment, skipping..."
           fi
 
 
