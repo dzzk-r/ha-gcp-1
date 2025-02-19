@@ -76,7 +76,7 @@ jobs:
 
       - name: Post Infracost Comment
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           echo "Checking if cost-report.json exists..."
           ls -lah
@@ -101,14 +101,14 @@ jobs:
             echo "Posting cost estimate comment to PR #$PR_NUMBER"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
-                                     --github-token=${{ secrets.GITHUB_TOKEN }} \
+                                     --github-token=${{ secrets.GH_PAT }} \
                                      --pull-request="$PR_NUMBER" \
                                      --behavior=update
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "Manual run detected. Posting cost report to latest commit: ${{ github.sha }}"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
-                                     --github-token=${{ secrets.GITHUB_TOKEN }} \
+                                     --github-token=${{ secrets.GH_PAT }} \
                                      --commit=${{ github.sha }} \
                                      --behavior=update
           else
