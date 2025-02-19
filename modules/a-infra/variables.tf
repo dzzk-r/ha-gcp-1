@@ -1,3 +1,13 @@
+variable "project_id" {
+  type    = string
+  default = "mock-project"
+}
+
+variable "service_account_email" {
+  type    = string
+  default = "mock-sa@mock-project.iam.gserviceaccount.com"
+}
+
 # modules/infra-a/variables.tf
 variable "environment" {
   description = "Deployment environment"

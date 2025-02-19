@@ -3,3 +3,8 @@
 #   role    = "roles/container.admin"
 #   member  = "serviceAccount:${var.service_account_email}"
 # }
+resource "null_resource" "mock_iam" {
+  provisioner "local-exec" {
+    command = "echo 'Mock IAM Member'"
+  }
+}

@@ -7,10 +7,12 @@ output "gke_cluster_id" {
 
 output "ingress_controller_endpoint" {
   description = "Ingress controller external endpoint"
-  value       = google_compute_global_address.ingress_ip.address
+  # value       = google_compute_global_address.ingress_ip.address
+  value = "mock-ingress-endpoint"
 }
 
 output "app_service_url" {
   description = "Public URL for the deployed application"
-  value       = kubernetes_service.app.status.load_balancer.ingress[0].hostname
+  # value       = kubernetes_service.app.status.load_balancer.ingress[0].hostname
+  value = "mock-app-url"
 }
