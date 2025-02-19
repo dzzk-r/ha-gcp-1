@@ -46,4 +46,9 @@ variable "terraform_backend_bucket" {
   type        = string
 }
 
-resource "google_storage_bucket_iam_member" "terraform_state_viewer" {}
+# resource "google_storage_bucket_iam_member" "terraform_state_viewer" {}
+resource "google_storage_bucket_iam_member" "terraform_state_viewer" {
+  bucket = "mock-tf-state-bucket"
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:mock-sa@mock-project.iam.gserviceaccount.com"
+}

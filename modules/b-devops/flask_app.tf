@@ -23,7 +23,7 @@ resource "kubernetes_deployment" "flask_app" {
           name  = "flask"
           image = "gcr.io/${var.project_id}/flask-app:latest"
 
-          ports {
+          port {
             container_port = 5000
           }
 

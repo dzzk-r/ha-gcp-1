@@ -1,5 +1,6 @@
 resource "google_compute_security_policy" "cloud_armor_policy" {
-  name = "cloud-armor-policy"
+  name    = "cloud-armor-policy"
+  project = var.project_id
 }
 
 #####

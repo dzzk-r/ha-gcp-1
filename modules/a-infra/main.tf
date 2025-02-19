@@ -9,6 +9,7 @@
 
 resource "google_compute_firewall" "allow_external_lb" {
   name    = "allow-external-lb"
+  project = var.project_id
   network = google_compute_network.vpc_external.name
 
   allow {

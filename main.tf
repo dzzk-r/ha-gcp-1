@@ -32,9 +32,9 @@ module "b-devops" {
   app_image          = var.app_image
 }
 
-module "monitoring" {
-  source = "./modules/monitoring"
-}
+# module "monitoring" {
+#   source = "./modules/monitoring"
+# }
 
 module "argo" {
   source = "./modules/argo"
