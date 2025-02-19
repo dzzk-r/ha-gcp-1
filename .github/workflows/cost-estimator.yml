@@ -56,22 +56,15 @@ jobs:
 
       - name: Debug Terraform Show Output
         run: |
-          ls -lh tfplan.json
-          echo "-=-=-=-=-=-=-"
-          cat tfplan.json
-          echo "-=-=-=-=-=-=-"
-          echo 0
-          echo "-=-=-=-=-=-=-"
-          terraform show -json -no-color
-          echo "-=-=-=-=-=-=-"
-          echo 1
-          echo "-=-=-=-=-=-=-"
-          terraform show -json -no-color tfplan.binary | jq '.' > tfplan.json
-          echo "-=-=-=-=-=-=-"
-          echo 2
-          echo "-=-=-=-=-=-=-"
-          python -m json.tool < tfplan.json
-          echo "-=-=-=-=-=-=-"
+          terraform show -json tfplan.binary > tfplan_raw.json
+      - name: Print raw Terraform JSON output
+        run: cat tfplan_raw.json
+
+      - name: Format JSON with jq
+        run: cat tfplan_raw.json | jq '.' > tfplan_processed.json
+
+      - name: Print processed JSON
+        run: cat tfplan_processed.json
 
       - name: Debug - List Files in Workspace
         run: |
