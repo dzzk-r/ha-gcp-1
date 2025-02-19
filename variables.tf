@@ -32,3 +32,19 @@ variable "subnet_cidr" {
   type    = string
   default = "10.0.0.0/24"
 }
+
+#### Fix of b-devops module arguments (!)
+variable "gke_cluster_name" {
+  type    = string
+  default = "default-cluster"
+}
+
+variable "ingress_controller" {
+  type    = string
+  default = "nginx"
+}
+
+variable "app_image" {
+  type    = string
+  default = "nginx:latest"
+}
