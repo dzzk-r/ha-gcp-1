@@ -42,7 +42,7 @@ jobs:
         run: |
           infracost breakdown --path . --format json > cost-report.json
           cat cost-report.json | jq .
-          mv cost-report.json infracost-latest.json
+          cp cost-report.json infracost-latest.json
           infracost diff --path infracost-latest.json --compare-to infracost-previous.json || true
 
 #          terraform init -backend=false # No GCP required
@@ -64,7 +64,7 @@ jobs:
         run: |
           infracost breakdown --path=. \
                               --format=json \
-                              --out-file=/tmp/infracost-base.json
+                              --out-file=cost-report.json
 
       # Checkout the current PR branch so we can create a diff.
       - name: Checkout PR branch
@@ -75,7 +75,7 @@ jobs:
         run: |
           infracost diff --path=. \
                           --format=json \
-                          --compare-to=/tmp/infracost-base.json \
+                          --compare-to=cost-report.json \
                           --out-file=/tmp/infracost.json
 
       # Posts a comment to the PR using the 'update' behavior.
