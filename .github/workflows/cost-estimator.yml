@@ -44,8 +44,9 @@ jobs:
           cat cost-report.json | jq .
           mv cost-report.json infracost-latest.json
           infracost diff --path infracost-latest.json --compare-to infracost-previous.json || true
-      #          terraform init -backend=false # No GCP required
-      #          terraform plan -out=tfplan
+
+#          terraform init -backend=false # No GCP required
+#          terraform plan -out=tfplan
 
       - name: Upload Cost Report as Artifact
         uses: actions/upload-artifact@v3
