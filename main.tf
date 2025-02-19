@@ -25,9 +25,9 @@ module "b-devops" {
   source = "./modules/b-devops"
 
   #### Fix of b-devops module arguments (!)
-  gke_cluster_name  = var.gke_cluster_name
+  gke_cluster_name   = var.gke_cluster_name
   ingress_controller = var.ingress_controller
-  app_image         = var.app_image
+  app_image          = var.app_image
 }
 
 module "monitoring" {

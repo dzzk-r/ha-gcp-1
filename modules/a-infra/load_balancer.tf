@@ -1,12 +1,12 @@
 resource "google_compute_backend_service" "ext_lb_backend" {
-  name          = "ext-lb-backend"
-  protocol      = "HTTP"
-  port_name     = "http"
-  timeout_sec   = 30
+  name                  = "ext-lb-backend"
+  protocol              = "HTTP"
+  port_name             = "http"
+  timeout_sec           = 30
   load_balancing_scheme = "EXTERNAL"
 
   backend {
-    group = google_container_node_pool.gke_nodes.instance_group_urls[0]  # Attach GKE Nodes
+    group = google_container_node_pool.gke_nodes.instance_group_urls[0] # Attach GKE Nodes
   }
 }
 
@@ -21,7 +21,7 @@ resource "google_compute_target_http_proxy" "ext_lb_proxy" {
 }
 
 resource "google_compute_global_forwarding_rule" "ext_lb_fwd_rule" {
-  name        = "ext-lb-fwd-rule"
-  target      = google_compute_target_http_proxy.ext_lb_proxy.id
-  port_range  = "80"
+  name       = "ext-lb-fwd-rule"
+  target     = google_compute_target_http_proxy.ext_lb_proxy.id
+  port_range = "80"
 }
