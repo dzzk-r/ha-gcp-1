@@ -47,10 +47,12 @@ jobs:
         run: |
           echo "Generating Terraform plan..."
           terraform plan -out=tfplan.binary || echo "{}" > tfplan.binary
-          terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
+          terraform show -json tfplan > tfplan.json
+#          terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
 
       - name: Debug - Show Terraform Plan JSON
         run: |
+          cat tfplan.json
           echo "Terraform Plan JSON:" && cat tfplan.json | jq .
 
       - name: Debug - List Files in Workspace
