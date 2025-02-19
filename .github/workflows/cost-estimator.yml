@@ -71,7 +71,8 @@ jobs:
 
       - name: Verify JSON with jq
         run: |
-          jq '.' tfplan_raw.json > tfplan_processed.json
+          tail -n +2 tfplan_raw.json > tfplan_cleaned.json
+          jq '.' tfplan_cleaned.json > tfplan_processed.json
 
       - name: Validate raw JSON with Python
         run: python -m json.tool < tfplan_raw.json
