@@ -43,6 +43,16 @@ jobs:
           infracost breakdown --path . --format json > cost-report.json
 #          terraform init -backend=false # No GCP required
 #          terraform plan -out=tfplan
+          cat cost-report.json | jq .
+          mv cost-report.json infracost-latest.json
+          infracost diff --path infracost-latest.json --compare-to infracost-previous.json || true
+
+      - name: Upload Cost Report as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: infracost-report
+          path: infracost-latest.json
+          retention-days: 7
 
       - name: Show Cost Report
-        run: cat cost-report.json
+        run: cat infracost-latest.json
