@@ -24,9 +24,9 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: latest
-
-      - name: Create Fake GCP Credentials
-        run: echo '{}' > fake-gcp-credentials.json
+#
+#      - name: Create Fake GCP Credentials
+#        run: echo '{}' > fake-gcp-credentials.json
 
       - name: Initialize Terraform (Mock GCP)
         run: |
