@@ -28,7 +28,6 @@ jobs:
         run: |
           touch tfplan
           echo "Fake Terraform Plan - No GCP" > tfplan
-        # terraform plan -out=tfplan
 
       - name: Install Infracost
         run: |
@@ -42,147 +41,76 @@ jobs:
         run: |
           echo "Running infracost breakdown..."
           infracost breakdown --path . --format json --out-file=cost-report.json || echo "{}" > cost-report.json
-          
+
           echo "Verifying cost-report.json..."
           ls -lah cost-report.json || echo "{}" > cost-report.json
-          
+
           echo "Final cost-report.json contents:"
           cat cost-report.json | jq .
-          
-          # Ensure persistence
-          cp cost-report.json infracost-latest.json
 
-#          terraform init -backend=false # No GCP required
-#          terraform plan -out=tfplan
+          # Ensure persistence
+          if [ -f infracost-latest.json ]; then
+            cp infracost-latest.json cost-report.json
+          else
+            echo "{}" > cost-report.json
+          fi
 
       - name: Upload Cost Report as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: infracost-report
-          path: infracost-latest.json
+          path: cost-report.json
           retention-days: 7
 
       - name: Show Cost Report
-        run: cat infracost-latest.json
+        run: cat cost-report.json
 
-######### INFRACOST EXAMPLE ACTION
-      # Generate Infracost JSON file as the baseline.
-      - name: Generate Infracost cost estimate baseline
+      - name: Download Cost Report Artifact (Ensure Persistence)
+        uses: actions/download-artifact@v4
+        with:
+          name: infracost-report
+          path: .
+
+      - name: Debug - Check Available Files
         run: |
-          infracost breakdown --path=. \
-                              --format=json \
-                              --out-file=cost-report.json
+          echo "Checking available files in workspace..."
+          ls -lah
 
-      # Checkout the current PR branch so we can create a diff.
-      - name: Checkout PR branch
-        uses: actions/checkout@v4
-
-#      # Generate an Infracost diff and save it to a JSON file.
-#      - name: Generate Infracost diff
-#        run: |
-#          infracost diff --path=. \
-#                          --format=json \
-#                          --compare-to=cost-report.json \
-#                          --out-file=infracost.json
-
-      # Posts a comment to the PR using the 'update' behavior.
-      # This ensures cost estimate comments are maintained correctly.
-      - name: Post Infracost comment
+      - name: Post Infracost Comment
         run: |
           echo "Checking if cost-report.json exists..."
           ls -lah
+
           if [ ! -f cost-report.json ]; then
             echo "cost-report.json is missing! Copying from artifacts if available..."
             cp infracost-latest.json cost-report.json || echo "{}" > cost-report.json
           fi
 
+          # Ensure the JSON file is valid before posting
+          jq empty cost-report.json || { echo "⚠️ Invalid JSON file! Fixing..."; echo "{}" > cost-report.json; }
+
           # Exit if cost-report.json is still missing
           if [ ! -s cost-report.json ]; then
-            echo "No cost report found, skipping comment."
+            echo "⚠️ No cost report found, skipping comment."
             exit 0
           fi
 
-          # Detect PR number (empty in manual runs)
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          
+          PR_NUMBER="${{ github.event.pull_request.number || '' }}"
+
           if [[ -n "$PR_NUMBER" ]]; then
-            echo "Posting cost estimate comment to PR #$PR_NUMBER"
+            echo "✅ Posting cost estimate comment to PR #$PR_NUMBER"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
                                      --github-token=${{ secrets.GITHUB_TOKEN }} \
                                      --pull-request="$PR_NUMBER" \
                                      --behavior=update
           elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "Manual run detected. Posting cost report to latest commit: ${{ github.sha }}"
+            echo "✅ Manual run detected. Posting cost report to latest commit: ${{ github.sha }}"
             infracost comment github --path=cost-report.json \
                                      --repo=$GITHUB_REPOSITORY \
                                      --github-token=${{ secrets.GITHUB_TOKEN }} \
                                      --commit=${{ github.sha }} \
                                      --behavior=update
           else
-            echo "No valid context (PR or Manual Trigger) for Infracost comment, skipping..."
+            echo "⚠️ No valid context (PR or Manual Trigger) for Infracost comment, skipping..."
           fi
-
-
-#        run: |
-#          if [ ! -s cost-report.json ]; then
-#            echo "No cost report found, skipping comment."
-#            exit 0
-#          fi
-#
-#          if [ -n "${{ github.event.pull_request.number }}" ]; then
-#            infracost comment github --path=cost-report.json \
-#                                     --repo=$GITHUB_REPOSITORY \
-#                                     --github-token=${{ secrets.GITHUB_TOKEN }} \
-#                                     --pull-request=${{ github.event.pull_request.number }} \
-#                                     --behavior=update
-#          else
-#            infracost comment github --path=cost-report.json \
-#                                     --repo=$GITHUB_REPOSITORY \
-#                                     --github-token=${{ secrets.GITHUB_TOKEN }} \
-#                                     --commit=${{ github.sha }} \
-#                                     --behavior=update
-#          fi
-
-  # Run Infracost on default branch and update Infracost Cloud
-  infracost-default-branch-update:
-    name: Infracost Default Branch Update
-    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup Infracost
-        uses: infracost/actions/setup@v3
-        with:
-          api-key: ${{ secrets.INFRACOST_API_KEY }}
-
-      - name: Checkout main/master branch
-        uses: actions/checkout@v4
-
-      - name: Run Infracost on default branch and update Infracost Cloud
-        run: |
-          infracost breakdown --path=. \
-                    --format=json \
-                    --out-file=infracost.json
-
-          infracost upload --path=infracost.json || echo "Always pass main branch runs even if there are policy failures"
-
-  # Update PR status in Infracost Cloud
-  infracost-pull-request-status-update:
-    name: Infracost PR Status Update
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Infracost PR Status Update
-        run: |
-          PR_STATUS="MERGED"
-          if [[ ${{ github.event.pull_request.merged }} = false ]]; then PR_STATUS="CLOSED"; fi
-          
-          echo "Updating status of ${{ github.event.pull_request.html_url }} to $PR_STATUS"
-          curl -i \
-            --request POST \
-            --header "Content-Type: application/json" \
-            --header "X-API-Key: $INFRACOST_API_KEY" \
-            --data "{ \"query\": \"mutation {updatePullRequestStatus( url: \\\"${{ github.event.pull_request.html_url }}\\\", status: $PR_STATUS )}\" }" \
-            "https://dashboard.api.infracost.io/graphql";
-        env:
-          INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
