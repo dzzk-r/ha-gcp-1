@@ -70,18 +70,21 @@ jobs:
           tail -n +2 tfplan_raw.json > tfplan_cleaned.json
           od -c tfplan_cleaned.json
 
+      - name: Extract the first line of tfplan_raw.json
+        run: head -n 1 tfplan_cleaned.json > tfplan_final.json
+
       - name: Verify JSON with jq
         run: |
-          jq '.' tfplan_cleaned.json > tfplan_processed.json
+          jq '.' tfplan_final.json > tfplan_processed.json
 
       - name: Validate raw JSON with Python
         run: python -m json.tool < tfplan_raw.json
 
       - name: Format JSON with jq
-        run: cat tfplan_raw.json | jq '.' > tfplan_processed.json
+        run: cat tfplan_processed.json | jq '.' > tfplan_artf.json
 
       - name: Print processed JSON
-        run: cat tfplan_processed.json
+        run: cat tfplan_artf.json
 
       - name: Debug - List Files in Workspace
         run: |
