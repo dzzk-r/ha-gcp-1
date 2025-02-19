@@ -43,7 +43,7 @@ jobs:
         run: |
           echo "Generating Terraform plan..."
           terraform plan -out=tfplan.binary || echo "{}" > tfplan.binary
-          # terraform show -json tfplan.binary > tfplan.json
+          # terraform show -json -no-color tfplan.binary > tfplan.json
           terraform show -json -no-color tfplan.binary > tfplan.json
 
 
@@ -62,11 +62,11 @@ jobs:
           echo "-=-=-=-=-=-=-"
           echo 0
           echo "-=-=-=-=-=-=-"
-          terraform show -json
+          terraform show -json -no-color
           echo "-=-=-=-=-=-=-"
           echo 1
           echo "-=-=-=-=-=-=-"
-          terraform show -json tfplan.binary | jq '.' > tfplan.json
+          terraform show -json -no-color tfplan.binary | jq '.' > tfplan.json
           echo "-=-=-=-=-=-=-"
           echo 2
           echo "-=-=-=-=-=-=-"
