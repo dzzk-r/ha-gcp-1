@@ -60,7 +60,7 @@ jobs:
           echo 0
           terraform show -json
           echo 1
-#          terraform show -json tfplan.binary > tfplan.json
+          #          terraform show -json tfplan.binary > tfplan.json
           terraform show -json tfplan.binary | jq '.' > tfplan.json
           echo 2
           python -m json.tool < tfplan.json
