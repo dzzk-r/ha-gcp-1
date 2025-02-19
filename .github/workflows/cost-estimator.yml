@@ -60,6 +60,12 @@ jobs:
       - name: Print raw Terraform JSON output
         run: cat tfplan_raw.json
 
+      - name: Display first few lines of raw JSON
+        run: head -n 10 tfplan_raw.json
+
+      - name: Validate raw JSON with Python
+        run: python -m json.tool < tfplan_raw.json
+
       - name: Format JSON with jq
         run: cat tfplan_raw.json | jq '.' > tfplan_processed.json
 
