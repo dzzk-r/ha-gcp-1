@@ -40,5 +40,5 @@ jobs:
 #      - name: Check if Loki is running
 #        run: curl -f http://localhost:3100/loki/api/v1/status || echo "Loki not reachable"
 
-      - name: Stop Docker services
-        run: docker compose down
+#      - name: Stop Docker services
+#        run: docker compose down
