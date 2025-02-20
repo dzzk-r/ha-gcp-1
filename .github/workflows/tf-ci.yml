@@ -46,7 +46,6 @@ jobs:
           terraform_version: 1.6.0
 
       - name: Terraform Init
-        if: matrix.task != 'security-scan'
         run: terraform init -reconfigure
 
       - name: Terraform Validate
@@ -55,7 +54,10 @@ jobs:
 
       - name: Install Checkov
         if: matrix.task == 'security-scan'
-        run: pip install checkov
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip install --upgrade pip setuptools checkov
 
       - name: Run Checkov Security Scan
         if: matrix.task == 'security-scan'
@@ -67,6 +69,7 @@ jobs:
         if: matrix.task == 'cost-estimation'
         run: |
           curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
+          infracost configure set api_key ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Run Infracost Estimate
         if: matrix.task == 'cost-estimation'
