@@ -88,9 +88,12 @@ jobs:
       - name: Run Infracost Estimate
         if: matrix.task == 'cost-estimation'
         run: |
+          if [[ ! -s tfplan.json ]]; then
+            echo "⚠️ Terraform plan is empty, skipping cost estimation."
+            exit 0
+          fi
           echo "Running Infracost Breakdown..."
-          infracost breakdown --terraform-plan-file=tfplan.json --format json > infracost.json || echo "{}" > infracost.json
-          ls -lah infracost.json  # Debugging step to check if file exists
+          infracost breakdown --path . --terraform-plan-file=tfplan.binary --format json > infracost.json || echo "{}" > infracost.json
           cat infracost.json | jq . > infracost-results.json || echo "{}" > infracost-results.json
 
       - name: Save Task Artifacts
@@ -146,7 +149,7 @@ jobs:
       - name: Post Infracost Report to PR
         if: github.event_name == 'pull_request'
         run: |
-          if [ ! -f infracost.json ]; then
+          if [ ! -s infracost.json ]; then
             echo "⚠️ No infracost.json found, skipping comment."
             exit 0
           fi
