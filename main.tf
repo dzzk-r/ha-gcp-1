@@ -1,8 +1,8 @@
 terraform {
   required_version = ">= 1.0"
-  backend "local" {
-    path = "./terraform.tfstate" # Going GH First Approach
-  }
+  # backend "local" {
+  #   path = "./terraform.tfstate" # Going GH First Approach
+  # }
   # - Prevents Terraform from attempting to use a non-existent GCS bucket.
   # - Works locally without billing or cloud dependencies.
   # backend "gcs" {

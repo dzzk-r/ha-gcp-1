@@ -57,8 +57,19 @@ jobs:
       - name: Debug - Show Fake GCP Credentials
         run: cat fake-gcp-credentials.json | jq .
 
-      - name: Terraform Init (No Backend)
-        run: terraform init -backend=false -reconfigure
+      - name: Terraform Init (No Backend, Ensure Clean State)
+        run: |
+          echo "Cleaning any existing Terraform state..."
+          rm -rf .terraform terraform.tfstate* tfplan* || true
+          
+          echo "Checking for backend in configuration..."
+          if grep -Ri "backend" .; then
+            echo "⚠️ Backend detected! Ensure backend is disabled in 'main.tf'."
+            exit 1
+          fi
+          
+          echo "Initializing Terraform without backend..."
+          terraform init -backend=false -reconfigure
 
       - name: Terraform Validate
         run: terraform validate -no-color
@@ -68,14 +79,14 @@ jobs:
           echo "Setting up Fake Credentials for Terraform..."
           export GOOGLE_APPLICATION_CREDENTIALS="${FAKE_CREDENTIALS}"
           
+          echo "Cleaning Terraform state..."
+          rm -rf .terraform terraform.tfstate* tfplan* || true
+          
           echo "Initializing Terraform..."
-          terraform init -backend=false -reconfigure
+          terraform init -backend=false -reconfigure || { echo "Terraform Init failed!"; exit 1; }
           
           echo "Generating Terraform plan..."
-          terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || exit 1
-          
-          echo "Generating JSON plan..."
-          terraform show -json tfplan.binary > tfplan.json || exit 1
+          terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || { echo "Terraform Plan failed!"; exit 1; }
 
       - name: Validate Terraform Plan JSON
         run: |
