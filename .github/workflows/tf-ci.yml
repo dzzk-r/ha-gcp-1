@@ -31,7 +31,7 @@ jobs:
           restore-keys: terraform-${{ runner.os }}-
 
   terraform-tasks:
-    name: Parallel Terraform Tasks
+    name: tfTasks
     needs: setup
     runs-on: ubuntu-latest
     strategy:
@@ -72,10 +72,23 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
           infracost configure set api_key ${{ secrets.INFRACOST_API_KEY }}
 
+      - name: Generate Terraform Plan for Cost Estimation
+        if: matrix.task == 'cost-estimation'
+        run: |
+          echo "Generating Terraform Plan for Cost Estimation..."
+          terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || echo "{}" > tfplan.binary
+          terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
+
+      - name: Debug - Check Terraform Plan JSON
+        if: matrix.task == 'cost-estimation'
+        run: |
+          ls -lah tfplan.json
+          cat tfplan.json | jq . || echo "{}"
+
       - name: Run Infracost Estimate
         if: matrix.task == 'cost-estimation'
         run: |
-          echo "Running Infracost..."
+          echo "Running Infracost Breakdown..."
           infracost breakdown --terraform-plan-file=tfplan.json --format json > infracost.json || echo "{}" > infracost.json
           ls -lah infracost.json  # Debugging step to check if file exists
           cat infracost.json | jq . > infracost-results.json || echo "{}" > infracost-results.json
