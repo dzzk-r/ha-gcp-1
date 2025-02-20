@@ -21,7 +21,10 @@ jobs:
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.5
+          terraform_version: 1.6.0  # Using latest version
+
+      - name: Override Backend for CI
+        run: cp override.tf backend_override.tf  # Ensures Terraform uses the local backend
 
       - name: Terraform Format Check
         run: terraform fmt -recursive -check
@@ -57,8 +60,8 @@ jobs:
       - name: Debug - Show Fake GCP Credentials
         run: cat fake-gcp-credentials.json | jq .
 
-      - name: Terraform Init (Mocked Backend)
-        run: terraform init -reconfigure -backend=false
+      - name: Terraform Init (Override Backend)
+        run: terraform init -reconfigure
 
       - name: Terraform Validate
         run: terraform validate -no-color
@@ -72,7 +75,7 @@ jobs:
           rm -rf .terraform terraform.tfstate* tfplan* || true
           
           echo "Initializing Terraform..."
-          terraform init -backend=false -reconfigure || { echo "Terraform Init failed!"; exit 1; }
+          terraform init -reconfigure || { echo "Terraform Init failed!"; exit 1; }
           
           echo "Generating Terraform plan..."
           terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || { echo "Terraform Plan failed!"; exit 1; }

@@ -26,14 +26,6 @@ module "a-infra" {
   subnet_cidr              = var.subnet_cidr
 }
 
-# module "monitoring" {
-#   source = "./modules/monitoring"
-# }
-
-module "argo" {
-  source = "./modules/argo"
-}
-
 module "b-devops" {
   source          = "./modules/b-devops"
   project_id      = var.project_id
@@ -43,3 +35,11 @@ module "b-devops" {
   gke_cluster_name = var.gke_cluster_name
   app_image        = var.app_image
 }
+
+# module "monitoring" {
+#   source = "./modules/monitoring"
+# }
+
+# module "argo" {
+#   source = "./modules/argo"
+# }
