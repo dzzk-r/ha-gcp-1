@@ -2,14 +2,10 @@
 
 output "gke_cluster_id" {
   description = "ID of the created GKE cluster"
-  value       = google_container_cluster.gke.id
+  # value       = google_container_cluster.gke.id
+  value = module.shared_gke.gke_cluster_id # Use the shared GKE output
 }
 
-output "ingress_controller_endpoint" {
-  description = "Ingress controller external endpoint"
-  # value       = google_compute_global_address.ingress_ip.address
-  value = "mock-ingress-endpoint"
-}
 
 output "app_service_url" {
   description = "Public URL for the deployed application"
