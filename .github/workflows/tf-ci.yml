@@ -63,13 +63,13 @@ jobs:
           rm -rf .terraform terraform.tfstate* tfplan* || true
           
           echo "Checking for backend in configuration..."
-          if grep -Ri "backend" .; then
+          if grep -Ri "backend" . | grep -vE '^\s*#'; then
             echo "⚠️ Backend detected! Ensure backend is disabled in 'main.tf'."
             exit 1
           fi
           
           echo "Initializing Terraform without backend..."
-          terraform init -backend=false -reconfigure
+          terraform init -backend=false -reconfigure -force-copy
 
       - name: Terraform Validate
         run: terraform validate -no-color
