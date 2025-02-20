@@ -76,24 +76,23 @@ jobs:
         if: matrix.task == 'cost-estimation'
         run: |
           echo "Generating Terraform Plan for Cost Estimation..."
-          terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || echo "{}" > tfplan.binary
-          terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
+          terraform plan -input=false -out=tfplan.binary || echo "{}" > tfplan.binary
 
-      - name: Debug - Check Terraform Plan JSON
+      - name: Debug - Check Terraform Plan Binary
         if: matrix.task == 'cost-estimation'
         run: |
-          ls -lah tfplan.json
-          cat tfplan.json | jq . || echo "{}"
+          echo "Terraform Plan Output:"
+          terraform show tfplan.binary || echo "Plan is empty"
 
       - name: Run Infracost Estimate
         if: matrix.task == 'cost-estimation'
         run: |
-          if [[ ! -s tfplan.json ]]; then
+          if [[ ! -s tfplan.binary ]]; then
             echo "⚠️ Terraform plan is empty, skipping cost estimation."
             exit 0
           fi
           echo "Running Infracost Breakdown..."
-          infracost breakdown --path . --terraform-plan-file=tfplan.binary --format json > infracost.json || echo "{}" > infracost.json
+          infracost breakdown --terraform-plan-file=tfplan.binary --format json > infracost.json || echo "{}" > infracost.json
           cat infracost.json | jq . > infracost-results.json || echo "{}" > infracost-results.json
 
       - name: Save Task Artifacts
@@ -124,7 +123,7 @@ jobs:
       - name: Generate Terraform Plan
         run: |
           echo "Generating Terraform plan..."
-          terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || echo "No changes detected"
+          terraform plan -input=false -out=tfplan.binary || echo "No changes detected"
           
           echo "Converting plan to JSON..."
           terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
