@@ -7,7 +7,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   setup:
@@ -40,6 +40,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
       - name: Terraform Init
         if: matrix.task != 'security-scan'
         run: terraform init -reconfigure
@@ -54,7 +59,9 @@ jobs:
 
       - name: Run Checkov Security Scan
         if: matrix.task == 'security-scan'
-        run: checkov -d . --quiet --output json > checkov-report.json || true
+        run: |
+          checkov -d . --quiet --output json > checkov-report.json || true
+          cat checkov-report.json | jq . > checkov-results.json
 
       - name: Install Infracost
         if: matrix.task == 'cost-estimation'
@@ -65,70 +72,34 @@ jobs:
         if: matrix.task == 'cost-estimation'
         run: |
           infracost breakdown --path . --format json > infracost.json || true
+          cat infracost.json | jq . > infracost-results.json
 
       - name: Save Task Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.task }}-report
           path: |
-            checkov-report.json
-            infracost.json
+            checkov-results.json
+            infracost-results.json
             tfplan.json
           if-no-files-found: ignore
 
-  terraform-plan:
-    name: Terraform Plan
+  terraform-apply:
+    name: Terraform Apply (Main Branch Only)
     needs: terraform-tasks
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
 
       - name: Terraform Init
         run: terraform init -reconfigure
-
-      - name: Generate Terraform Plan
-        run: terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || echo "No changes detected"
-
-      - name: Convert Plan to JSON
-        run: terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
-
-      - name: Save Terraform Plan
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-plan
-          path: tfplan.json
-
-      - name: Post Terraform Plan to PR
-        if: github.event_name == 'pull_request'
-        uses: mshick/add-pr-comment@v2
-        with:
-          message: |
-            🚀 **Terraform Plan Results**:
-            ```
-            $(terraform show tfplan.binary)
-            ```
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Post Infracost Report to PR
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "### :moneybag: Estimated Cost Changes" >> infracost-comment.txt
-          echo '```json' >> infracost-comment.txt
-          cat infracost.json >> infracost-comment.txt
-          echo '```' >> infracost-comment.txt
-          gh pr comment ${{ github.event.pull_request.number }} -F infracost-comment.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  terraform-apply:
-    name: Terraform Apply (Main Only)
-    needs: terraform-plan
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
