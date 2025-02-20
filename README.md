@@ -42,3 +42,6 @@ This distinction ensures:
   ├── backend.tf                   # Remote Terraform state configuration
 ```
 ![Architecture Diagram](architecure-enterprice/architecture.png)
+
+![diagram-export-2-20-2025-10_09_14-PM](https://github.com/user-attachments/assets/35c38beb-477f-4794-b565-939ee401d8b3)
+via https://www.eraser.io/ai/architecture-diagram-generator
