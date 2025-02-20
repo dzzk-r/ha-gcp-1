@@ -9,6 +9,9 @@ terraform {
   #   bucket = "terraform-state-dev"
   #   prefix = "terraform/state"
   # }
+  backend "local" {
+    path = "./terraform.tfstate"
+  }
 }
 
 module "a-infra" {
