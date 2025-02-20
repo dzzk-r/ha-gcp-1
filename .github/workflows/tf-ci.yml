@@ -23,6 +23,16 @@ jobs:
         with:
           terraform_version: 1.6.0  # Using latest version
 
+      - name: Create Terraform Backend Override
+        run: |
+          cat > override.tf <<EOL
+          terraform {
+            backend "local" {
+              path = "./terraform.tfstate"
+            }
+          }
+          EOL
+
       - name: Override Backend for CI
         run: cp override.tf backend_override.tf  # Ensures Terraform uses the local backend
 
