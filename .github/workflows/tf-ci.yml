@@ -85,6 +85,18 @@ jobs:
           ls -lah tfplan.json
           cat tfplan.json | jq . || echo "{}"
 
+      - name: Ensure Terraform Variable Files Exist
+        if: matrix.task == 'cost-estimation'
+        run: |
+          echo "Checking for Terraform variable files..."
+          for file in terraform.tfvars env/dev.tfvars backend.tfvars example.tfvars; do
+            if [ ! -f "$file" ]; then
+              echo "{}" > "$file"
+              echo "⚠️ Created empty $file to prevent Infracost errors."
+            fi
+          done
+          ls -lah terraform.tfvars env/dev.tfvars backend.tfvars example.tfvars
+
       - name: Run Infracost Estimate
         if: matrix.task == 'cost-estimation'
         run: |
