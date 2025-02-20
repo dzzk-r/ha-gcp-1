@@ -57,8 +57,8 @@ jobs:
       - name: Debug - Show Fake GCP Credentials
         run: cat fake-gcp-credentials.json | jq .
 
-      - name: Terraform Init
-        run: terraform init -backend=false
+      - name: Terraform Init (No Backend)
+        run: terraform init -backend=false -reconfigure
 
       - name: Terraform Validate
         run: terraform validate -no-color
@@ -69,10 +69,10 @@ jobs:
           export GOOGLE_APPLICATION_CREDENTIALS="${FAKE_CREDENTIALS}"
           
           echo "Initializing Terraform..."
-          terraform init -reconfigure
+          terraform init -backend=false -reconfigure
           
           echo "Generating Terraform plan..."
-          terraform plan -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || exit 1
+          terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || exit 1
           
           echo "Generating JSON plan..."
           terraform show -json tfplan.binary > tfplan.json || exit 1
