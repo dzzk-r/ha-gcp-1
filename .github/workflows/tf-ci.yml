@@ -91,12 +91,26 @@ jobs:
           terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || echo "{}" > tfplan.binary
           terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
 
+      - name: Debug - Check Go Test Execution
+        if: matrix.task == 'terratest'
+        run: |
+          echo "Before running Go tests"
+          ls -lah tests/
+          cat tests/terraform_test.go || echo "No test file found"
+
       - name: Install Go & Run Terratest
         if: matrix.task == 'terratest'
         run: |
           sudo apt update && sudo apt install -y golang
           go version
-          go test -v -timeout 30m ./tests/ > terratest-results.log || true
+          go test -v -timeout 30m ./tests/ | tee terratest-results.log || true
+
+      - name: Debug - Check Terratest Log
+        if: matrix.task == 'terratest'
+        run: |
+          echo "After running Go tests"
+          ls -lah terratest-results.log
+          cat terratest-results.log || echo "No output in test log"
 
       - name: Debug - Check Terraform Plan JSON
         if: matrix.task == 'cost-estimation'
