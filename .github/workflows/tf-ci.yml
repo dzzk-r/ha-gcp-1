@@ -39,37 +39,14 @@ jobs:
       - name: Terraform Format Check
         run: terraform fmt -recursive -check
 
-      - name: Debug Fake GCP Credentials (Hex & JSON)
-        run: |
-          echo "Raw JSON contents:"
-          cat fake-gcp-credentials.json
-          
-          echo "Hex dump of JSON file (to detect hidden characters):"
-          od -c fake-gcp-credentials.json
-          
-          echo "Validating JSON with Python:"
-          python3 -m json.tool fake-gcp-credentials.json || echo "Python JSON validation failed!"
-          
-          echo "Validating JSON with jq:"
-          jq . fake-gcp-credentials.json || echo "jq validation failed!"
-
-      - name: Debug Raw JSON Before Writing
-        run: |
-          echo "Dumping raw FAKE_GCP_JSON from GitHub Secrets..."
-          echo "${{ secrets.FAKE_GCP_JSON }}"
-
       - name: Generate Fake GCP Credentials
         run: |
-          echo "Generating fake GCP credentials..."
-          
-          # Ensure multi-line JSON is correctly written
-          printf "%s" "${{ secrets.FAKE_GCP_JSON }}" > fake-gcp-credentials.json
-          
-          # Remove potential BOM characters
-          sed -i 's/\xEF\xBB\xBF//g' fake-gcp-credentials.json
-          
-          # Validate JSON before proceeding
-          python3 -m json.tool fake-gcp-credentials.json || { echo "Invalid JSON!"; exit 1; }
+          echo "Decoding fake GCP credentials..."
+          echo "${{ secrets.FAKE_GCP_JSON }}" | base64 -d > fake-gcp-credentials.json
+
+          echo "Validating JSON structure..."
+          python3 -m json.tool fake-gcp-credentials.json || exit 1
+
 
 #          cat > fake-gcp-credentials.json <<EOL
 #          {
@@ -89,10 +66,16 @@ jobs:
       - name: Verify Fake GCP Credentials
         run: |
           echo "Checking fake GCP credentials..."
+          if ! [ -s fake-gcp-credentials.json ]; then
+            echo "Error: fake-gcp-credentials.json is empty or missing!"
+            exit 1
+          fi
+
           if ! jq -e '.type' fake-gcp-credentials.json > /dev/null; then
             echo "Error: 'type' field is missing in fake-gcp-credentials.json!"
             exit 1
           fi
+
           echo "Setting GOOGLE_APPLICATION_CREDENTIALS..."
           echo "FAKE_CREDENTIALS=$(pwd)/fake-gcp-credentials.json" >> $GITHUB_ENV
 
