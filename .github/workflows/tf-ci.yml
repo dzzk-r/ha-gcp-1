@@ -42,8 +42,10 @@ jobs:
       - name: Generate Fake GCP Credentials
         run: |
           echo "Generating fake GCP credentials..."
-          echo -e "${{ secrets.FAKE_GCP_JSON }}" > fake-gcp-credentials.json
-      #          cat > fake-gcp-credentials.json <<EOL
+          printf "%s" "${{ secrets.FAKE_GCP_JSON }}" > fake-gcp-credentials.json
+          cat fake-gcp-credentials.json | jq .
+
+#          cat > fake-gcp-credentials.json <<EOL
 #          {
 #            "type": "service_account",
 #            "project_id": "mock-project",
