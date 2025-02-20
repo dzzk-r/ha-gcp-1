@@ -39,18 +39,32 @@ jobs:
       - name: Terraform Format Check
         run: terraform fmt -recursive -check
 
-      - name: Debug Fake GCP Credentials File
+      - name: Debug Fake GCP Credentials (Hex & JSON)
         run: |
-          echo "Dumping raw contents of fake-gcp-credentials.json:"
+          echo "Raw JSON contents:"
           cat fake-gcp-credentials.json
-          echo "Checking JSON validity..."
-          jq . fake-gcp-credentials.json
+          
+          echo "Hex dump of JSON file (to detect hidden characters):"
+          od -c fake-gcp-credentials.json
+          
+          echo "Validating JSON with Python:"
+          python3 -m json.tool fake-gcp-credentials.json || echo "Python JSON validation failed!"
+          
+          echo "Validating JSON with jq:"
+          jq . fake-gcp-credentials.json || echo "jq validation failed!"
 
       - name: Generate Fake GCP Credentials
         run: |
           echo "Generating fake GCP credentials..."
-          printf "%s" "${{ secrets.FAKE_GCP_JSON }}" > fake-gcp-credentials.json
-          cat fake-gcp-credentials.json | jq .
+          
+          # Ensure multi-line JSON is preserved correctly
+          echo -e "${{ secrets.FAKE_GCP_JSON }}" > fake-gcp-credentials.json
+          
+          # Remove potential BOM characters
+          sed -i 's/\xEF\xBB\xBF//g' fake-gcp-credentials.json
+          
+          # Validate JSON before proceeding
+          cat fake-gcp-credentials.json | python3 -m json.tool || exit 1
 
 #          cat > fake-gcp-credentials.json <<EOL
 #          {
