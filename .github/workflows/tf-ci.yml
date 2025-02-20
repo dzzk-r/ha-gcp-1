@@ -111,7 +111,7 @@ jobs:
           for file in terraform.tfvars env/dev.tfvars backend.tfvars example.tfvars; do
             if [ ! -f "$file" ]; then
               echo "{}" > "$file"
-              echo Created empty $file to prevent Infracost errors."
+              echo "Created empty $file to prevent Infracost errors."
             fi
           done
           ls -lah terraform.tfvars env/dev.tfvars backend.tfvars example.tfvars
