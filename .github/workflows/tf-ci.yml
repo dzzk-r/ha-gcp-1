@@ -39,6 +39,13 @@ jobs:
       - name: Terraform Format Check
         run: terraform fmt -recursive -check
 
+      - name: Debug Fake GCP Credentials File
+        run: |
+          echo "Dumping raw contents of fake-gcp-credentials.json:"
+          cat fake-gcp-credentials.json
+          echo "Checking JSON validity..."
+          jq . fake-gcp-credentials.json
+
       - name: Generate Fake GCP Credentials
         run: |
           echo "Generating fake GCP credentials..."
