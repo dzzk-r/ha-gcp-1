@@ -1,0 +1,603 @@
+{
+  "version": "0.2",
+  "metadata": {
+    "infracostCommand": "breakdown",
+    "vcsBranch": "main",
+    "vcsCommitSha": "fa04465a9dee02dd6dd05cfca17f75c3e920de6a",
+    "vcsCommitAuthorName": "Daniel Chechik",
+    "vcsCommitAuthorEmail": "danielworkload@gmail.com",
+    "vcsCommitTimestamp": "2025-02-19T21:29:20Z",
+    "vcsCommitMessage": "Fulfill terraform with mocks... %(\nTune cost-estimator workflow with changes",
+    "vcsRepositoryUrl": "https://github.com/dzzk-r/ha-gcp-1.git"
+  },
+  "currency": "USD",
+  "projects": [
+    {
+      "name": "dzzk-r/ha-gcp-1/scripts/tfplan.json",
+      "displayName": "",
+      "metadata": {
+        "path": "tfplan.json",
+        "type": "terraform_plan_json",
+        "policySha": "f385ed8e7cfa69fc0dca79372c823d0c0a5e70ba",
+        "pastPolicySha": "0",
+        "vcsSubPath": "scripts/tfplan.json",
+        "providers": [
+          {
+            "name": "google"
+          },
+          {
+            "name": "null"
+          },
+          {
+            "name": "kubernetes"
+          }
+        ]
+      },
+      "pastBreakdown": {
+        "resources": [],
+        "totalHourlyCost": "0",
+        "totalMonthlyCost": "0",
+        "totalMonthlyUsageCost": "0"
+      },
+      "breakdown": {
+        "resources": [
+          {
+            "name": "module.a-infra.google_container_cluster.gke_cluster",
+            "resourceType": "google_container_cluster",
+            "defaultTags": {},
+            "providerSupportsDefaultTags": true,
+            "metadata": {},
+            "hourlyCost": "0.5213577021917808208",
+            "monthlyCost": "380.5911226",
+            "costComponents": [
+              {
+                "name": "Cluster management fee",
+                "unit": "hours",
+                "hourlyQuantity": "1",
+                "monthlyQuantity": "730",
+                "price": "0.1",
+                "hourlyCost": "0.1",
+                "monthlyCost": "73",
+                "priceNotFound": false
+              }
+            ],
+            "subresources": [
+              {
+                "name": "default_pool",
+                "metadata": {},
+                "hourlyCost": "0.4213577021917808208",
+                "monthlyCost": "307.5911226",
+                "costComponents": [
+                  {
+                    "name": "Instance usage (Linux/UNIX, on-demand, e2-medium)",
+                    "unit": "hours",
+                    "hourlyQuantity": "9",
+                    "monthlyQuantity": "6570",
+                    "price": "0.04024218",
+                    "hourlyCost": "0.36217962",
+                    "monthlyCost": "264.3911226",
+                    "priceNotFound": false
+                  },
+                  {
+                    "name": "Standard provisioned storage (pd-standard)",
+                    "unit": "GB",
+                    "hourlyQuantity": "1.2328767123287671",
+                    "monthlyQuantity": "900",
+                    "price": "0.048",
+                    "hourlyCost": "0.0591780821917808208",
+                    "monthlyCost": "43.2",
+                    "priceNotFound": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "module.b-devops.google_container_cluster.gke",
+            "resourceType": "google_container_cluster",
+            "defaultTags": {},
+            "providerSupportsDefaultTags": true,
+            "metadata": {},
+            "hourlyCost": "0.5213577021917808208",
+            "monthlyCost": "380.5911226",
+            "costComponents": [
+              {
+                "name": "Cluster management fee",
+                "unit": "hours",
+                "hourlyQuantity": "1",
+                "monthlyQuantity": "730",
+                "price": "0.1",
+                "hourlyCost": "0.1",
+                "monthlyCost": "73",
+                "priceNotFound": false
+              }
+            ],
+            "subresources": [
+              {
+                "name": "default_pool",
+                "metadata": {},
+                "hourlyCost": "0.4213577021917808208",
+                "monthlyCost": "307.5911226",
+                "costComponents": [
+                  {
+                    "name": "Instance usage (Linux/UNIX, on-demand, e2-medium)",
+                    "unit": "hours",
+                    "hourlyQuantity": "9",
+                    "monthlyQuantity": "6570",
+                    "price": "0.04024218",
+                    "hourlyCost": "0.36217962",
+                    "monthlyCost": "264.3911226",
+                    "priceNotFound": false
+                  },
+                  {
+                    "name": "Standard provisioned storage (pd-standard)",
+                    "unit": "GB",
+                    "hourlyQuantity": "1.2328767123287671",
+                    "monthlyQuantity": "900",
+                    "price": "0.048",
+                    "hourlyCost": "0.0591780821917808208",
+                    "monthlyCost": "43.2",
+                    "priceNotFound": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "module.b-devops.google_container_cluster.gke_cluster",
+            "resourceType": "google_container_cluster",
+            "defaultTags": {},
+            "providerSupportsDefaultTags": true,
+            "metadata": {},
+            "hourlyCost": "0.333910972328767124",
+            "monthlyCost": "243.7550098",
+            "costComponents": [
+              {
+                "name": "Cluster management fee",
+                "unit": "hours",
+                "hourlyQuantity": "1",
+                "monthlyQuantity": "730",
+                "price": "0.1",
+                "hourlyCost": "0.1",
+                "monthlyCost": "73",
+                "priceNotFound": false
+              }
+            ],
+            "subresources": [
+              {
+                "name": "default_pool",
+                "metadata": {},
+                "hourlyCost": "0.233910972328767124",
+                "monthlyCost": "170.7550098",
+                "costComponents": [
+                  {
+                    "name": "Instance usage (Linux/UNIX, on-demand, e2-medium)",
+                    "unit": "hours",
+                    "hourlyQuantity": "6",
+                    "monthlyQuantity": "4380",
+                    "price": "0.03350571",
+                    "hourlyCost": "0.20103426",
+                    "monthlyCost": "146.7550098",
+                    "priceNotFound": false
+                  },
+                  {
+                    "name": "Standard provisioned storage (pd-standard)",
+                    "unit": "GB",
+                    "hourlyQuantity": "0.8219178082191781",
+                    "monthlyQuantity": "600",
+                    "price": "0.04",
+                    "hourlyCost": "0.032876712328767124",
+                    "monthlyCost": "24",
+                    "priceNotFound": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "module.a-infra.google_container_node_pool.gke_nodes",
+            "resourceType": "google_container_node_pool",
+            "defaultTags": {},
+            "providerSupportsDefaultTags": true,
+            "metadata": {},
+            "hourlyCost": "0.140452567397260272",
+            "monthlyCost": "102.5303742",
+            "costComponents": [
+              {
+                "name": "Instance usage (Linux/UNIX, on-demand, e2-medium)",
+                "unit": "hours",
+                "hourlyQuantity": "3",
+                "monthlyQuantity": "2190",
+                "price": "0.04024218",
+                "hourlyCost": "0.12072654",
+                "monthlyCost": "88.1303742",
+                "priceNotFound": false
+              },
+              {
+                "name": "Standard provisioned storage (pd-standard)",
+                "unit": "GB",
+                "hourlyQuantity": "0.410958904109589",
+                "monthlyQuantity": "300",
+                "price": "0.048",
+                "hourlyCost": "0.019726027397260272",
+                "monthlyCost": "14.4",
+                "priceNotFound": false
+              }
+            ]
+          },
+          {
+            "name": "module.a-infra.google_compute_global_forwarding_rule.ext_lb_fwd_rule",
+            "resourceType": "google_compute_global_forwarding_rule",
+            "tags": {},
+            "defaultTags": {},
+            "providerSupportsDefaultTags": true,
+            "metadata": {},
+            "hourlyCost": "0.01",
+            "monthlyCost": "7.3",
+            "costComponents": [
+              {
+                "name": "Forwarding rules",
+                "unit": "hours",
+                "hourlyQuantity": "1",
+                "monthlyQuantity": "730",
+                "price": "0.01",
+                "hourlyCost": "0.01",
+                "monthlyCost": "7.3",
+                "priceNotFound": false
+              },
+              {
+                "name": "Ingress data",
+                "unit": "GB",
+                "hourlyQuantity": null,
+                "monthlyQuantity": null,
+                "price": "0.008",
+                "hourlyCost": null,
+                "monthlyCost": null,
+                "usageBased": true,
+                "priceNotFound": false
+              }
+            ]
+          },
+          {
+            "name": "module.a-infra.google_compute_target_http_proxy.ext_lb_proxy",
+            "resourceType": "google_compute_target_http_proxy",
+            "defaultTags": {},
+            "providerSupportsDefaultTags": true,
+            "metadata": {},
+            "costComponents": [
+              {
+                "name": "Proxy instance",
+                "unit": "hours",
+                "hourlyQuantity": null,
+                "monthlyQuantity": null,
+                "price": "0.025",
+                "hourlyCost": null,
+                "monthlyCost": null,
+                "usageBased": true,
+                "priceNotFound": false
+              },
+              {
+                "name": "Data processed",
+                "unit": "GB",
+                "hourlyQuantity": null,
+                "monthlyQuantity": null,
+                "price": "0.008",
+                "hourlyCost": null,
+                "monthlyCost": null,
+                "usageBased": true,
+                "priceNotFound": false
+              }
+            ]
+          }
+        ],
+        "totalHourlyCost": "1.5270789441095890376",
+        "totalMonthlyCost": "1114.7676292",
+        "totalMonthlyUsageCost": "0"
+      },
+      "diff": {
+        "resources": [
+          {
+            "name": "module.a-infra.google_container_cluster.gke_cluster",
+            "resourceType": "google_container_cluster",
+            "defaultTags": {},
+            "metadata": {},
+            "hourlyCost": "0.5213577021917808208",
+            "monthlyCost": "380.5911226",
+            "monthlyUsageCost": "0",
+            "costComponents": [
+              {
+                "name": "Cluster management fee",
+                "unit": "hours",
+                "hourlyQuantity": "1",
+                "monthlyQuantity": "730",
+                "price": "0.1",
+                "hourlyCost": "0.1",
+                "monthlyCost": "73",
+                "priceNotFound": false
+              }
+            ],
+            "subresources": [
+              {
+                "name": "default_pool",
+                "metadata": {},
+                "hourlyCost": "0.4213577021917808208",
+                "monthlyCost": "307.5911226",
+                "monthlyUsageCost": "0",
+                "costComponents": [
+                  {
+                    "name": "Instance usage (Linux/UNIX, on-demand, e2-medium)",
+                    "unit": "hours",
+                    "hourlyQuantity": "9",
+                    "monthlyQuantity": "6570",
+                    "price": "0.04024218",
+                    "hourlyCost": "0.36217962",
+                    "monthlyCost": "264.3911226",
+                    "priceNotFound": false
+                  },
+                  {
+                    "name": "Standard provisioned storage (pd-standard)",
+                    "unit": "GB",
+                    "hourlyQuantity": "1.2328767123287671",
+                    "monthlyQuantity": "900",
+                    "price": "0.048",
+                    "hourlyCost": "0.0591780821917808208",
+                    "monthlyCost": "43.2",
+                    "priceNotFound": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "module.b-devops.google_container_cluster.gke",
+            "resourceType": "google_container_cluster",
+            "defaultTags": {},
+            "metadata": {},
+            "hourlyCost": "0.5213577021917808208",
+            "monthlyCost": "380.5911226",
+            "monthlyUsageCost": "0",
+            "costComponents": [
+              {
+                "name": "Cluster management fee",
+                "unit": "hours",
+                "hourlyQuantity": "1",
+                "monthlyQuantity": "730",
+                "price": "0.1",
+                "hourlyCost": "0.1",
+                "monthlyCost": "73",
+                "priceNotFound": false
+              }
+            ],
+            "subresources": [
+              {
+                "name": "default_pool",
+                "metadata": {},
+                "hourlyCost": "0.4213577021917808208",
+                "monthlyCost": "307.5911226",
+                "monthlyUsageCost": "0",
+                "costComponents": [
+                  {
+                    "name": "Instance usage (Linux/UNIX, on-demand, e2-medium)",
+                    "unit": "hours",
+                    "hourlyQuantity": "9",
+                    "monthlyQuantity": "6570",
+                    "price": "0.04024218",
+                    "hourlyCost": "0.36217962",
+                    "monthlyCost": "264.3911226",
+                    "priceNotFound": false
+                  },
+                  {
+                    "name": "Standard provisioned storage (pd-standard)",
+                    "unit": "GB",
+                    "hourlyQuantity": "1.2328767123287671",
+                    "monthlyQuantity": "900",
+                    "price": "0.048",
+                    "hourlyCost": "0.0591780821917808208",
+                    "monthlyCost": "43.2",
+                    "priceNotFound": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "module.b-devops.google_container_cluster.gke_cluster",
+            "resourceType": "google_container_cluster",
+            "defaultTags": {},
+            "metadata": {},
+            "hourlyCost": "0.333910972328767124",
+            "monthlyCost": "243.7550098",
+            "monthlyUsageCost": "0",
+            "costComponents": [
+              {
+                "name": "Cluster management fee",
+                "unit": "hours",
+                "hourlyQuantity": "1",
+                "monthlyQuantity": "730",
+                "price": "0.1",
+                "hourlyCost": "0.1",
+                "monthlyCost": "73",
+                "priceNotFound": false
+              }
+            ],
+            "subresources": [
+              {
+                "name": "default_pool",
+                "metadata": {},
+                "hourlyCost": "0.233910972328767124",
+                "monthlyCost": "170.7550098",
+                "monthlyUsageCost": "0",
+                "costComponents": [
+                  {
+                    "name": "Instance usage (Linux/UNIX, on-demand, e2-medium)",
+                    "unit": "hours",
+                    "hourlyQuantity": "6",
+                    "monthlyQuantity": "4380",
+                    "price": "0.03350571",
+                    "hourlyCost": "0.20103426",
+                    "monthlyCost": "146.7550098",
+                    "priceNotFound": false
+                  },
+                  {
+                    "name": "Standard provisioned storage (pd-standard)",
+                    "unit": "GB",
+                    "hourlyQuantity": "0.8219178082191781",
+                    "monthlyQuantity": "600",
+                    "price": "0.04",
+                    "hourlyCost": "0.032876712328767124",
+                    "monthlyCost": "24",
+                    "priceNotFound": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "module.a-infra.google_container_node_pool.gke_nodes",
+            "resourceType": "google_container_node_pool",
+            "defaultTags": {},
+            "metadata": {},
+            "hourlyCost": "0.140452567397260272",
+            "monthlyCost": "102.5303742",
+            "monthlyUsageCost": "0",
+            "costComponents": [
+              {
+                "name": "Instance usage (Linux/UNIX, on-demand, e2-medium)",
+                "unit": "hours",
+                "hourlyQuantity": "3",
+                "monthlyQuantity": "2190",
+                "price": "0.04024218",
+                "hourlyCost": "0.12072654",
+                "monthlyCost": "88.1303742",
+                "priceNotFound": false
+              },
+              {
+                "name": "Standard provisioned storage (pd-standard)",
+                "unit": "GB",
+                "hourlyQuantity": "0.410958904109589",
+                "monthlyQuantity": "300",
+                "price": "0.048",
+                "hourlyCost": "0.019726027397260272",
+                "monthlyCost": "14.4",
+                "priceNotFound": false
+              }
+            ]
+          },
+          {
+            "name": "module.a-infra.google_compute_global_forwarding_rule.ext_lb_fwd_rule",
+            "resourceType": "google_compute_global_forwarding_rule",
+            "tags": {},
+            "defaultTags": {},
+            "metadata": {},
+            "hourlyCost": "0.01",
+            "monthlyCost": "7.3",
+            "monthlyUsageCost": "0",
+            "costComponents": [
+              {
+                "name": "Forwarding rules",
+                "unit": "hours",
+                "hourlyQuantity": "1",
+                "monthlyQuantity": "730",
+                "price": "0.01",
+                "hourlyCost": "0.01",
+                "monthlyCost": "7.3",
+                "priceNotFound": false
+              },
+              {
+                "name": "Ingress data",
+                "unit": "GB",
+                "hourlyQuantity": "0",
+                "monthlyQuantity": "0",
+                "price": "0.008",
+                "hourlyCost": "0",
+                "monthlyCost": "0",
+                "usageBased": true,
+                "priceNotFound": false
+              }
+            ]
+          },
+          {
+            "name": "module.a-infra.google_compute_target_http_proxy.ext_lb_proxy",
+            "resourceType": "google_compute_target_http_proxy",
+            "defaultTags": {},
+            "metadata": {},
+            "hourlyCost": "0",
+            "monthlyCost": "0",
+            "monthlyUsageCost": "0",
+            "costComponents": [
+              {
+                "name": "Proxy instance",
+                "unit": "hours",
+                "hourlyQuantity": "0",
+                "monthlyQuantity": "0",
+                "price": "0.025",
+                "hourlyCost": "0",
+                "monthlyCost": "0",
+                "usageBased": true,
+                "priceNotFound": false
+              },
+              {
+                "name": "Data processed",
+                "unit": "GB",
+                "hourlyQuantity": "0",
+                "monthlyQuantity": "0",
+                "price": "0.008",
+                "hourlyCost": "0",
+                "monthlyCost": "0",
+                "usageBased": true,
+                "priceNotFound": false
+              }
+            ]
+          }
+        ],
+        "totalHourlyCost": "1.5270789441095890376",
+        "totalMonthlyCost": "1114.7676292",
+        "totalMonthlyUsageCost": "0"
+      },
+      "summary": {
+        "totalDetectedResources": 14,
+        "totalSupportedResources": 6,
+        "totalUnsupportedResources": 1,
+        "totalUsageBasedResources": 6,
+        "totalNoPriceResources": 7,
+        "unsupportedResourceCounts": {
+          "google_compute_security_policy": 1
+        },
+        "noPriceResourceCounts": {
+          "google_compute_backend_service": 1,
+          "google_compute_firewall": 1,
+          "google_compute_network": 3,
+          "google_compute_url_map": 1,
+          "google_storage_bucket_iam_member": 1
+        }
+      }
+    }
+  ],
+  "totalHourlyCost": "1.5270789441095890376",
+  "totalMonthlyCost": "1114.7676292",
+  "totalMonthlyUsageCost": "0",
+  "pastTotalHourlyCost": "0",
+  "pastTotalMonthlyCost": "0",
+  "pastTotalMonthlyUsageCost": "0",
+  "diffTotalHourlyCost": "1.5270789441095890376",
+  "diffTotalMonthlyCost": "1114.7676292",
+  "diffTotalMonthlyUsageCost": "0",
+  "timeGenerated": "2025-02-19T22:24:53.794065Z",
+  "summary": {
+    "totalDetectedResources": 14,
+    "totalSupportedResources": 6,
+    "totalUnsupportedResources": 1,
+    "totalUsageBasedResources": 6,
+    "totalNoPriceResources": 7,
+    "unsupportedResourceCounts": {
+      "google_compute_security_policy": 1
+    },
+    "noPriceResourceCounts": {
+      "google_compute_backend_service": 1,
+      "google_compute_firewall": 1,
+      "google_compute_network": 3,
+      "google_compute_url_map": 1,
+      "google_storage_bucket_iam_member": 1
+    }
+  }
+}

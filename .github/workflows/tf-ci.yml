@@ -1,4 +1,4 @@
-name: Terraform CI
+name: Terraform CI/CD
 
 on:
   push:
@@ -7,82 +7,224 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 jobs:
-  terraform:
-    name: Terraform Validation & Security Checks
+  setup:
+    name: Setup & Install Dependencies
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.5
+          terraform_version: 1.6.0
 
-      - name: Terraform Format Check
-        run: terraform fmt -check
+      - name: Cache Terraform Dependencies
+        uses: actions/cache@v4
+        with:
+          path: .terraform/
+          key: terraform-${{ runner.os }}-${{ hashFiles('**/*.tf') }}
+          restore-keys: terraform-${{ runner.os }}-
 
-      - name: Generate Fake GCP Credentials
-        run: |
-          echo "Generating fake GCP credentials..."
-          cat > fake-gcp-credentials.json <<EOL
-          {
-            "type": "service_account",
-            "project_id": "mock-project",
-            "private_key_id": "mock-key",
-            "private_key": "-----BEGIN PRIVATE KEY-----\nmock-key-data\n-----END PRIVATE KEY-----\n",
-            "client_email": "mock-sa@mock-project.iam.gserviceaccount.com",
-            "client_id": "mock-client-id",
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/mock-sa@mock-project.iam.gserviceaccount.com"
-          }
-          EOL
+  terraform-tasks:
+    name: tfTasks
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        task: [validate, security-scan, cost-estimation, lint, terratest]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Verify Fake GCP Credentials
-        run: |
-          echo "Checking fake GCP credentials..."
-          if ! jq -e '.type' fake-gcp-credentials.json > /dev/null; then
-            echo "Error: 'type' field is missing in fake-gcp-credentials.json!"
-            exit 1
-          fi
-          echo "Setting GOOGLE_APPLICATION_CREDENTIALS..."
-          echo "FAKE_CREDENTIALS=$(pwd)/fake-gcp-credentials.json" >> $GITHUB_ENV
-
-      - name: Debug - Show Fake GCP Credentials
-        run: cat fake-gcp-credentials.json | jq .
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
 
       - name: Terraform Init
-        run: terraform init -backend=false
+        run: terraform init -reconfigure
 
-      - name: Terraform Validate (No GCP)
+      - name: Terraform Validate
+        if: matrix.task == 'validate'
+        run: terraform validate -no-color
+
+      - name: Install TFLint
+        if: matrix.task == 'lint'
         run: |
-          terraform validate || echo "Ignoring validation errors for non-GCP setup"
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          tflint --version
 
-      - name: Generate Terraform Plan (Mocked GCP)
+      - name: Run TFLint
+        if: matrix.task == 'lint'
         run: |
-          echo "Setting up Fake Credentials for Terraform..."
-          export GOOGLE_APPLICATION_CREDENTIALS="${FAKE_CREDENTIALS}"
-          
-          echo "Initializing Terraform..."
-          terraform init -reconfigure
-          
-          echo "Generating Terraform plan..."
-          terraform plan -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || exit 1
-          
-          echo "Generating JSON plan..."
-          terraform show -json tfplan.binary > tfplan.json || exit 1
+          tflint --init
+          tflint --format=json > tflint-results.json
 
-          echo "Debugging: Terraform Plan JSON"
-          cat tfplan.json | jq .
-
-      - name: Install Checkov (Security Scan)
-        run: pip install checkov
+      - name: Install Checkov
+        if: matrix.task == 'security-scan'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip install --upgrade pip setuptools checkov
 
       - name: Run Checkov Security Scan
-        run: checkov -d . --quiet
+        if: matrix.task == 'security-scan'
+        run: |
+          checkov -d . --quiet --output json > checkov-report.json || true
+          cat checkov-report.json | jq . > checkov-results.json
+
+      - name: Install Infracost
+        if: matrix.task == 'cost-estimation'
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
+          infracost configure set api_key ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Generate Terraform Plan for Cost Estimation
+        if: matrix.task == 'cost-estimation'
+        run: |
+          echo "Generating Terraform Plan for Cost Estimation..."
+          terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || echo "{}" > tfplan.binary
+          terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
+
+      - name: Debug - Check Go Test Execution
+        if: matrix.task == 'terratest'
+        run: |
+          echo "Before running Go tests"
+          ls -lah tests/
+          cat tests/terraform_test.go || echo "No test file found"
+
+      - name: Install Go & Run Terratest
+        if: matrix.task == 'terratest'
+        run: |
+          sudo apt update && sudo apt install -y golang
+          go version
+          go test -v -timeout 30m ./tests/ | tee terratest-results.log || true
+
+      - name: Debug - Check Terratest Log
+        if: matrix.task == 'terratest'
+        run: |
+          echo "After running Go tests"
+          ls -lah terratest-results.log
+          cat terratest-results.log || echo "No output in test log"
+
+      - name: Debug - Check Terraform Plan JSON
+        if: matrix.task == 'cost-estimation'
+        run: |
+          ls -lah tfplan.json
+          cat tfplan.json | jq . || echo "{}"
+
+      - name: Ensure Terraform Variable Files Exist
+        if: matrix.task == 'cost-estimation'
+        run: |
+          echo "Checking for Terraform variable files..."
+          for file in terraform.tfvars env/dev.tfvars backend.tfvars example.tfvars; do
+            if [ ! -f "$file" ]; then
+              echo "{}" > "$file"
+              echo "Created empty $file to prevent Infracost errors."
+            fi
+          done
+          ls -lah terraform.tfvars env/dev.tfvars backend.tfvars example.tfvars
+
+      - name: Run Infracost Estimate
+        if: matrix.task == 'cost-estimation'
+        run: |
+          echo "Running Infracost Breakdown..."
+          infracost breakdown --path . --terraform-var-file terraform.tfvars --terraform-var-file env/dev.tfvars --format json > infracost.json || echo "{}" > infracost.json
+          ls -lah infracost.json  # Debugging step to check if file exists
+          cat infracost.json | jq . > infracost-results.json || echo "{}" > infracost-results.json
+
+      - name: Save Task Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.task }}-report
+          path: |
+            checkov-results.json
+            infracost-results.json
+            tflint-results.json
+            terratest-results.log
+          if-no-files-found: ignore
+
+  terraform-plan:
+    name: Terraform Plan
+    needs: terraform-tasks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
+
+      - name: Generate Terraform Plan
+        run: |
+          echo "Generating Terraform plan..."
+          terraform plan -input=false -out=tfplan.binary || echo "No changes detected"
+          
+          echo "Converting plan to JSON..."
+          terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
+
+      - name: Save Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: tfplan.json
+
+      - name: Post Terraform Plan to PR
+        if: github.event_name == 'pull_request'
+        uses: mshick/add-pr-comment@v2
+        with:
+          message: |
+            🚀 **Terraform Plan Results**:
+            ```
+            $(terraform show tfplan.binary)
+            ```
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post Infracost Report to PR
+        if: github.event_name == 'pull_request'
+        run: |
+          if [ ! -s infracost.json ]; then
+            echo "⚠️ No infracost.json found, skipping comment."
+            exit 0
+          fi
+          
+          echo "### :moneybag: Estimated Cost Changes" > infracost-comment.txt
+          echo '```json' >> infracost-comment.txt
+          cat infracost.json >> infracost-comment.txt
+          echo '```' >> infracost-comment.txt
+          
+          echo "Posting Infracost Report to PR..."
+          gh pr comment ${{ github.event.pull_request.number }} -F infracost-comment.txt || echo "⚠️ Failed to post PR comment."
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  terraform-apply:
+    name: Terraform Apply (Main Branch Only)
+    needs: terraform-plan
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve

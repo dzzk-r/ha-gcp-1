@@ -1,0 +1,29 @@
+@startuml
+package "Infrastructure" {
+  [google_compute_backend_service: ext_lb_backend]
+  [google_compute_firewall: allow_external_lb]
+  [google_compute_global_forwarding_rule: ext_lb_fwd_rule]
+  [google_compute_network: vpc_external]
+  [google_compute_network: vpc_internal]
+  [google_compute_security_policy: cloud_armor_policy]
+  [google_compute_target_http_proxy: ext_lb_proxy]
+  [google_compute_url_map: ext_lb_map]
+  [google_container_cluster: gke_cluster]
+  [google_container_node_pool: gke_nodes]
+  [google_storage_bucket_iam_member: terraform_state_viewer]
+  [null_resource: mock_gke_nodes]
+  [null_resource: mock_iam]
+  [null_resource: mock_network]
+  [google_compute_network: vpc_internal]
+  [google_container_cluster: gke]
+  [google_container_cluster: gke_cluster]
+  [kubernetes_deployment: flask_app]
+  [kubernetes_deployment: nginx_ingress]
+  [kubernetes_ingress: flask_ingress]
+  [kubernetes_service: flask_app_service]
+}
+
+[google_compute_target_http_proxy: ext_lb_proxy] --> [google_compute_backend_service: ext_lb_backend]
+[google_compute_firewall: allow_external_lb] --> [google_compute_network: vpc_external]
+
+@enduml

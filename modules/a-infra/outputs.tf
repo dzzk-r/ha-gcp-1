@@ -26,3 +26,7 @@ output "subnet_id" {
 output "cloud_armor_policy" {
   value = "mock-cloud-armor"
 }
+
+output "vpc_internal_id" {
+  value = google_compute_network.vpc_internal.id
+}

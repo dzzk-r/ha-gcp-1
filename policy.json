@@ -1,0 +1,12 @@
+{
+  "bindings": [
+    {
+      "members": [
+        "user:ikotahome@gmail.com"
+      ],
+      "role": "roles/owner"
+    }
+  ],
+  "etag": "BwUstxswOYU=",
+  "version": 1
+}
