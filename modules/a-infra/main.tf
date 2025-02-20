@@ -7,15 +7,10 @@
 #   }
 # }
 
-resource "google_compute_firewall" "allow_external_lb" {
-  name    = "allow-external-lb"
-  project = var.project_id
-  network = google_compute_network.vpc_external.name
-
-  allow {
-    protocol = "tcp"
-    ports    = ["80", "443"]
-  }
-
-  source_ranges = ["0.0.0.0/0"]
+module "shared_gke" {
+  source     = "../../modules/shared/gke" # Correct relative path from a-infra
+  project_id = var.project_id
+  region     = "asia-south1"
+  network    = google_compute_network.vpc_internal.id
+  node_count = 2
 }

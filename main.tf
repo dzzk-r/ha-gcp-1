@@ -23,19 +23,20 @@ module "a-infra" {
   subnet_cidr              = var.subnet_cidr
 }
 
-module "b-devops" {
-  source = "./modules/b-devops"
-
-  #### Fix of b-devops module arguments (!)
-  gke_cluster_name   = var.gke_cluster_name
-  ingress_controller = var.ingress_controller
-  app_image          = var.app_image
-}
-
 # module "monitoring" {
 #   source = "./modules/monitoring"
 # }
 
 module "argo" {
   source = "./modules/argo"
+}
+
+module "b-devops" {
+  source          = "./modules/b-devops"
+  project_id      = var.project_id
+  region          = var.region
+  vpc_internal_id = module.a-infra.vpc_internal_id # Pass network ID from a-infra
+
+  gke_cluster_name = var.gke_cluster_name
+  app_image        = var.app_image
 }
