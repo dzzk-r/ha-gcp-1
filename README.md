@@ -47,3 +47,6 @@ This project uses a GitHub Actions-based CI/CD pipeline for Terraform automation
 See [CI-CD.md](./CI-CD.md) for details on setup, validation, and deployment.
 
 ![Architecture Diagram](architecure-enterprice/architecture.png)
+
+![diagram-export-2-20-2025-10_09_14-PM](https://github.com/user-attachments/assets/35c38beb-477f-4794-b565-939ee401d8b3)
+via https://www.eraser.io/ai/architecture-diagram-generator
