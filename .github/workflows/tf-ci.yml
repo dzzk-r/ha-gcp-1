@@ -90,12 +90,21 @@ jobs:
           echo "Generating Terraform plan..."
           terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || { echo "Terraform Plan failed!"; exit 1; }
 
+      - name: Convert Terraform Plan to JSON
+        run: terraform show -json tfplan.binary > tfplan.json
+
+      - name: Debug - Check Terraform Plan File
+        run: |
+          ls -lah
+          test -f tfplan.json && echo "tfplan.json exists" || echo "tfplan.json NOT FOUND"
+
       - name: Validate Terraform Plan JSON
         run: |
-          if ! jq empty tfplan.json; then
-            echo "Error: tfplan.json is not valid JSON!"
+          if [ ! -f tfplan.json ]; then
+            echo "Error: tfplan.json was not generated!"
             exit 1
           fi
+          jq empty tfplan.json
 
       - name: Save Terraform Plan JSON
         uses: actions/upload-artifact@v4
