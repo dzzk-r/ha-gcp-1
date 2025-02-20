@@ -7,7 +7,7 @@ resource "google_compute_backend_service" "ext_lb_backend" {
   load_balancing_scheme = "EXTERNAL"
 
   backend {
-    group = google_container_node_pool.gke_nodes.instance_group_urls[0] # Attach GKE Nodes
+    group = module.shared_gke.gke_nodes_instance_group[0]
   }
 }
 

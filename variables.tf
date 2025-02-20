@@ -6,7 +6,7 @@ variable "project_id" {
 
 variable "region" {
   type    = string
-  default = "asia-south1"  # Set a mock default value
+  default = "asia-south1" # Set a mock default value
 }
 
 # Mock GCP SA
