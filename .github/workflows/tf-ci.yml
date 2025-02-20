@@ -31,7 +31,7 @@ jobs:
           restore-keys: terraform-${{ runner.os }}-
 
   terraform-tasks:
-    name: tfParallelTasks
+    name: tfTasks
     needs: setup
     runs-on: ubuntu-latest
     strategy:
@@ -75,8 +75,10 @@ jobs:
       - name: Run Infracost Estimate
         if: matrix.task == 'cost-estimation'
         run: |
-          infracost breakdown --path . --format json > infracost.json || true
-          cat infracost.json | jq . > infracost-results.json
+          echo "Running Infracost..."
+          infracost breakdown --path . --format json > infracost.json || echo "{}" > infracost.json
+          ls -lah infracost.json  # Debugging step to check if file exists
+          cat infracost.json | jq . > infracost-results.json || echo "{}" > infracost-results.json
 
       - name: Save Task Artifacts
         uses: actions/upload-artifact@v4
@@ -129,7 +131,12 @@ jobs:
       - name: Post Infracost Report to PR
         if: github.event_name == 'pull_request'
         run: |
-          echo "### :moneybag: Estimated Cost Changes" >> infracost-comment.txt
+          if [ ! -f infracost.json ]; then
+            echo "⚠️ No infracost.json found, skipping comment."
+            exit 0
+          fi
+          
+          echo "### :moneybag: Estimated Cost Changes" > infracost-comment.txt
           echo '```json' >> infracost-comment.txt
           cat infracost.json >> infracost-comment.txt
           echo '```' >> infracost-comment.txt
