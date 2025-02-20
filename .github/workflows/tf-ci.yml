@@ -31,7 +31,7 @@ jobs:
           restore-keys: terraform-${{ runner.os }}-
 
   terraform-tasks:
-    name: tfTasks
+    name: Parallel Terraform Tasks
     needs: setup
     runs-on: ubuntu-latest
     strategy:
@@ -76,7 +76,7 @@ jobs:
         if: matrix.task == 'cost-estimation'
         run: |
           echo "Running Infracost..."
-          infracost breakdown --path . --format json > infracost.json || echo "{}" > infracost.json
+          infracost breakdown --terraform-plan-file=tfplan.json --format json > infracost.json || echo "{}" > infracost.json
           ls -lah infracost.json  # Debugging step to check if file exists
           cat infracost.json | jq . > infracost-results.json || echo "{}" > infracost-results.json
 
@@ -106,10 +106,12 @@ jobs:
         run: terraform init -reconfigure
 
       - name: Generate Terraform Plan
-        run: terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || echo "No changes detected"
-
-      - name: Convert Plan to JSON
-        run: terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
+        run: |
+          echo "Generating Terraform plan..."
+          terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || echo "No changes detected"
+          
+          echo "Converting plan to JSON..."
+          terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
 
       - name: Save Terraform Plan
         uses: actions/upload-artifact@v4
@@ -140,7 +142,10 @@ jobs:
           echo '```json' >> infracost-comment.txt
           cat infracost.json >> infracost-comment.txt
           echo '```' >> infracost-comment.txt
-          gh pr comment ${{ github.event.pull_request.number }} -F infracost-comment.txt
+          
+          echo "Posting Infracost Report to PR..."
+          gh pr comment ${{ github.event.pull_request.number }} -F infracost-comment.txt || echo "⚠️ Failed to post PR comment."
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
