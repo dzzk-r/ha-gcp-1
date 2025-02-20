@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        task: [validate, security-scan, cost-estimation]
+        task: [validate, security-scan, cost-estimation, lint, terratest]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -52,6 +52,18 @@ jobs:
       - name: Terraform Validate
         if: matrix.task == 'validate'
         run: terraform validate -no-color
+
+      - name: Install TFLint
+        if: matrix.task == 'lint'
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          tflint --version
+
+      - name: Run TFLint
+        if: matrix.task == 'lint'
+        run: |
+          tflint --init
+          tflint --format=json > tflint-results.json
 
       - name: Install Checkov
         if: matrix.task == 'security-scan'
@@ -79,6 +91,13 @@ jobs:
           terraform plan -input=false -var="project_id=mock-project" -var="region=mock-region" -out=tfplan.binary || echo "{}" > tfplan.binary
           terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
 
+      - name: Install Go & Run Terratest
+        if: matrix.task == 'terratest'
+        run: |
+          sudo apt update && sudo apt install -y golang
+          go version
+          go test -v -timeout 30m ./tests/ > terratest-results.log || true
+
       - name: Debug - Check Terraform Plan JSON
         if: matrix.task == 'cost-estimation'
         run: |
@@ -92,7 +111,7 @@ jobs:
           for file in terraform.tfvars env/dev.tfvars backend.tfvars example.tfvars; do
             if [ ! -f "$file" ]; then
               echo "{}" > "$file"
-              echo "⚠️ Created empty $file to prevent Infracost errors."
+              echo Created empty $file to prevent Infracost errors."
             fi
           done
           ls -lah terraform.tfvars env/dev.tfvars backend.tfvars example.tfvars
@@ -112,6 +131,8 @@ jobs:
           path: |
             checkov-results.json
             infracost-results.json
+            tflint-results.json
+            terratest-results.log
           if-no-files-found: ignore
 
   terraform-plan:
