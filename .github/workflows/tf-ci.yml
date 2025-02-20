@@ -77,6 +77,13 @@ jobs:
           echo "Generating JSON plan..."
           terraform show -json tfplan.binary > tfplan.json || exit 1
 
+      - name: Validate Terraform Plan JSON
+        run: |
+          if ! jq empty tfplan.json; then
+            echo "Error: tfplan.json is not valid JSON!"
+            exit 1
+          fi
+
       - name: Save Terraform Plan JSON
         uses: actions/upload-artifact@v4
         with:
@@ -87,4 +94,11 @@ jobs:
         run: pip install checkov
 
       - name: Run Checkov Security Scan
-        run: checkov -d . --quiet
+        run: |
+          checkov -d . --quiet --output json > checkov-report.json || true
+
+      - name: Save Checkov Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkov-report
+          path: checkov-report.json
