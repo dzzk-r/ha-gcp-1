@@ -30,6 +30,11 @@ jobs:
           key: terraform-${{ runner.os }}-${{ hashFiles('**/*.tf') }}
           restore-keys: terraform-${{ runner.os }}-
 
+      - name: Install Prettier & Black
+        run: |
+          npm install -g prettier
+          # pip install black
+
   terraform-tasks:
     name: tfTasks
     needs: setup
@@ -48,6 +53,17 @@ jobs:
 
       - name: Terraform Init
         run: terraform init -reconfigure
+
+      - name: Install Prettier & Black
+        if: matrix.task == 'format-check'
+        run: |
+          npm install -g prettier
+          # pip install black
+
+      - name: Run Prettier Format Check
+        if: matrix.task == 'format-check'
+        run: |
+          prettier --check "**/*.{json,yaml,md}"
 
       - name: Terraform Fmt
         if: matrix.task == 'fmt'
