@@ -196,6 +196,18 @@ jobs:
           echo "Converting plan to JSON..."
           terraform show -json tfplan.binary > tfplan.json || echo "{}" > tfplan.json
 
+      - name: Post Terraform Plan Summary to PR
+        if: github.event_name == 'pull_request'
+        run: |
+          PLAN=$(terraform show -no-color tfplan.binary || echo "No changes detected")
+          echo "Terraform Plan Summary" > plan-summary.txt
+          echo '```terraform' >> plan-summary.txt
+          echo "$PLAN" >> plan-summary.txt
+          echo '```' >> plan-summary.txt
+          gh pr comment ${{ github.event.pull_request.number }} -F plan-summary.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Save Terraform Plan
         uses: actions/upload-artifact@v4
         with:
@@ -207,7 +219,7 @@ jobs:
         uses: mshick/add-pr-comment@v2
         with:
           message: |
-            🚀 **Terraform Plan Results**:
+            Terraform Plan Results:
             ```
             $(terraform show tfplan.binary)
             ```
@@ -217,7 +229,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           if [ ! -s infracost.json ]; then
-            echo "⚠️ No infracost.json found, skipping comment."
+            echo "No infracost.json found, skipping comment!"
             exit 0
           fi
           
