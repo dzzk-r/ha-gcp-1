@@ -41,4 +41,9 @@ This distinction ensures:
   ├── outputs.tf
   ├── backend.tf                   # Remote Terraform state configuration
 ```
+
+## CI/CD Pipeline
+This project uses a GitHub Actions-based CI/CD pipeline for Terraform automation.
+See [CI-CD.md](./CI-CD.md) for details on setup, validation, and deployment.
+
 ![Architecture Diagram](architecure-enterprice/architecture.png)
