@@ -49,9 +49,25 @@ jobs:
       - name: Terraform Init
         run: terraform init -reconfigure
 
+      - name: Terraform Fmt
+        if: matrix.task == 'fmt'
+        run: terraform fmt -check -recursive
+
       - name: Terraform Validate
         if: matrix.task == 'validate'
         run: terraform validate -no-color
+
+      - name: Check Terraform variables
+        if: matrix.task == 'validate'
+        run: terraform plan -var-file=env/dev.tfvars
+
+      - name: Ensure Terraform Workspace Exists
+        if: matrix.task == 'validate'
+        run: terraform workspace select dev || terraform workspace new dev
+
+      - name: Verify terraform.lock.hcl Integrity
+        if: matrix.task == 'validate'
+        run: git diff --exit-code terraform.lock.hcl || echo "⚠️ Warning: Changes detected in terraform.lock.hcl"
 
       - name: Install TFLint
         if: matrix.task == 'lint'
@@ -226,5 +242,20 @@ jobs:
       - name: Terraform Init
         run: terraform init -reconfigure
 
+      - name: Terraform Validate Before Apply
+        run: terraform validate -no-color
+
+      - name: Verify terraform.lock.hcl Integrity
+        run: git diff --exit-code terraform.lock.hcl || echo "Changes detected in terraform.lock.hcl!"
+
       - name: Terraform Apply
         run: terraform apply -auto-approve
+
+      - name: Terraform Output
+        run: terraform output > terraform-output.txt
+
+      - name: Save Terraform Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-output
+          path: terraform-output.txt
