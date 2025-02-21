@@ -67,7 +67,12 @@ jobs:
 
       - name: Verify terraform.lock.hcl Integrity
         if: matrix.task == 'validate'
-        run: git diff --exit-code terraform.lock.hcl || echo "⚠️ Warning: Changes detected in terraform.lock.hcl"
+        run: |
+          if git diff --exit-code terraform.lock.hcl; then
+            echo "No changes in terraform.lock.hcl."
+          else
+            echo "Changes detected in terraform.lock.hcl!"
+          fi
 
       - name: Install TFLint
         if: matrix.task == 'lint'
