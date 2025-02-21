@@ -61,9 +61,11 @@ jobs:
         if: matrix.task == 'validate'
         run: terraform plan -var-file=env/dev.tfvars
 
-      - name: Ensure Terraform Workspace Exists
-        if: matrix.task == 'validate'
-        run: terraform workspace select dev || terraform workspace new dev
+#       Do not need while we use only default workspace only (path = "./terraform.tfstate")
+#
+#      - name: Ensure Terraform Workspace Exists
+#        if: matrix.task == 'validate'
+#        run: terraform workspace select dev || terraform workspace new dev
 
       - name: Verify terraform.lock.hcl Integrity
         if: matrix.task == 'validate'
