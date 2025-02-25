@@ -77,17 +77,6 @@ terraform apply --auto-approve
 - Use `gcloud compute instances list` to check resources.
 - Access the external Load Balancer using the output URL.
 
-## CI/CD Pipeline
-This project uses a GitHub Actions-based CI/CD pipeline for Terraform automation.
-See [CI-CD.md](./CI-CD.md) for details on setup, validation, and deployment.
-
-## High Availability (HA) Overview
-
-### Architecture Diagram
-![Architecture Diagram](architecure-enterprice/architecture.png)
-
-![diagram-export-2-20-2025-10_09_14-PM](https://github.com/user-attachments/assets/35c38beb-477f-4794-b565-939ee401d8b3)
-via [eraser.io AI Diagram Generator](https://www.eraser.io/ai/architecture-diagram-generator)
 
 ### How HA is Achieved?
 - Multi-region setup for Load Balancers.
@@ -98,11 +87,9 @@ via [eraser.io AI Diagram Generator](https://www.eraser.io/ai/architecture-diagr
 - Add monitoring (Prometheus + Grafana)
 - Improve secrets management (GCP Secret Manager)
 
-## CI/CD Pipeline
-This project uses a GitHub Actions-based CI/CD pipeline for Terraform automation.
-See [CI-CD.md](./CI-CD.md) for details on setup, validation, and deployment.
 
+### Architecture Diagram
 ![Architecture Diagram](architecure-enterprice/architecture.png)
 
 ![diagram-export-2-20-2025-10_09_14-PM](https://github.com/user-attachments/assets/35c38beb-477f-4794-b565-939ee401d8b3)
-via https://www.eraser.io/ai/architecture-diagram-generator
+via [eraser.io AI Diagram Generator](https://www.eraser.io/ai/architecture-diagram-generator)
