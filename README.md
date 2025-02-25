@@ -42,6 +42,15 @@ This distinction ensures:
   ├── backend.tf                   # Remote Terraform state configuration
 ```
 
+## How HA is Achieved?
+- Multi-region setup for Load Balancers.
+- Auto-healing GKE nodes using managed instance groups.
+- Horizontal Pod Autoscaler (HPA) for scaling workloads dynamically.
+
+## Future Enhancements
+- Add monitoring (Prometheus + Grafana)
+- Improve secrets management (GCP Secret Manager)
+
 ## CI/CD Pipeline
 This project uses a GitHub Actions-based CI/CD pipeline for Terraform automation.
 See [CI-CD.md](./CI-CD.md) for details on setup, validation, and deployment.
