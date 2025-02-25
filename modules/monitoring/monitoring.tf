@@ -28,3 +28,54 @@ resource "google_monitoring_alert_policy" "cpu_alert" {
     google_monitoring_notification_channel.slack.id,
   ]
 }
+
+resource "google_monitoring_dashboard" "gke_dashboard" {
+  dashboard_json = <<EOT
+{
+  "displayName": "GKE Cluster Overview",
+  "gridLayout": {
+    "columns": "2",
+    "widgets": [
+      {
+        "title": "CPU Usage",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"kubernetes.io/container/cpu/request_utilization\"",
+                  "aggregation": {
+                    "alignmentPeriod": "300s",
+                    "perSeriesAligner": "ALIGN_MEAN"
+                  }
+                }
+              }
+            }
+          ],
+          "chartOptions": { "mode": "COLOR" }
+        }
+      },
+      {
+        "title": "Memory Usage",
+        "xyChart": {
+          "dataSets": [
+            {
+              "timeSeriesQuery": {
+                "timeSeriesFilter": {
+                  "filter": "metric.type=\"kubernetes.io/container/memory/request_utilization\"",
+                  "aggregation": {
+                    "alignmentPeriod": "300s",
+                    "perSeriesAligner": "ALIGN_MEAN"
+                  }
+                }
+              }
+            }
+          ],
+          "chartOptions": { "mode": "COLOR" }
+        }
+      }
+    ]
+  }
+}
+EOT
+}
